@@ -16,7 +16,7 @@ export function PlayScreen({ puzzles }: { puzzles: Puzzle[] }) {
   const game = usePuzzleGame(puzzles);
 
   const liveMessage = game.won
-    ? `Picture complete! Solved in ${formatTime(game.elapsedMs)}.`
+    ? `Picture complete — it's a ${game.puzzle.name.toLowerCase()}, solved in ${formatTime(game.elapsedMs)}.`
     : game.hasConflict
       ? "A highlighted clue can't be satisfied yet — something above it needs to change."
       : "";

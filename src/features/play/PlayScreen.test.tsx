@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { PlayScreen } from "./PlayScreen";
 import type { Puzzle } from "@/lib/nonogram";
 
@@ -19,10 +19,15 @@ describe("PlayScreen", () => {
     const cells = screen.getAllByRole("gridcell");
     // Tee solution: indices 0,1,2 (row0), 4 (row1 c1), 7 (row2 c1)
     for (const i of [0, 1, 2, 4, 7]) fireEvent.pointerDown(cells[i], { button: 0 });
+    // visible win card
     expect(screen.getByText("Picture complete!")).toBeInTheDocument();
-    expect(screen.getByText(/it's a tee/i)).toBeInTheDocument();
+    // both the win card body AND the live region carry the name — assert both exist
+    const nameMatches = screen.getAllByText(/it's a tee/i);
+    expect(nameMatches.length).toBeGreaterThanOrEqual(1);
+    // live region carries the full reveal phrase
     const status = screen.getByRole("status");
-    expect(within(status).getByText(/picture complete/i)).toBeInTheDocument();
+    expect(status).toHaveTextContent(/picture complete/i);
+    expect(status).toHaveTextContent(/it's a tee/i);
   });
 
   it("surfaces a conflict cue when a line becomes impossible", () => {
