@@ -74,7 +74,7 @@ This module has **no notion of React, timing, or rendering** — it is the testa
 
 ### 2. `src/lib/puzzles/builtins.ts`
 
-A typed `Puzzle[]`: the prototype's Toadstool / Heart / Cottage plus a few more authored for variety (5×5 and 10×10). All verified uniquely solvable. `lib/nonogram/solve.ts` holds a `countSolutions(rowClues, colClues, N, cap)` port (bounded DFS, node budget → "unknown"), and a Vitest test asserts every built-in returns exactly one solution. This is the only solver code in the slice; the editor's live uniqueness/difficulty UI is a later slice.
+A typed `Puzzle[]`: the prototype's Toadstool / Heart / Cottage plus a few more authored for variety (5×5 and 10×10). All verified **line-solvable without guessing** — the strong quality gate, which also implies uniqueness. `lib/nonogram/solve.ts` holds both a `countSolutions(rowClues, colClues, N, cap)` port (bounded DFS uniqueness count) **and** a `lineSolve(...)` constraint-propagation solver + `difficultyOf(...)` grader (ported from the prototype's `lineForced`/`assessDifficulty`). A Vitest test asserts every built-in is line-solvable (no guessing), grades to forager/woodlander (not mycologist), and — as an independent cross-check — has exactly one solution. The editor's *live* uniqueness/difficulty UI is still a later slice; this slice just uses the same engine to validate the built-ins.
 
 ### 3. `src/features/play/` — state + UI
 
@@ -146,7 +146,7 @@ vitest.config.ts, test setup
 
 ## Risks / notes
 
-- **Win on a non-unique board would mis-reveal the name.** Mitigated here because all built-ins are authored unique and a test enforces it; the general guard ("refuse to save non-unique") belongs to the Studio slice.
+- **Win on a non-unique board would mis-reveal the name.** Mitigated here because all built-ins are authored to be line-solvable (which implies unique) and a test enforces it; the general guard ("refuse to save non-unique") belongs to the Studio slice.
 - **a11y is the main new surface vs the prototype.** Roving-tabindex grid + live region are the pieces to get right; budget review time there.
 - **Pointer Events on desktop must keep the exact drag-paint feel** of the prototype (value latched on `pointerdown`).
 ```

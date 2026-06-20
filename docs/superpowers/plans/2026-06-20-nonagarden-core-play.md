@@ -539,7 +539,7 @@ git commit -m "feat: nonogram constraint-based win detection"
 
 ---
 
-### Task 6: Solver (`arrangements`, `countSolutions`)
+### Task 6: Solver — uniqueness (`countSolutions`) + line-solver (`lineSolve`, `difficultyOf`)
 
 **Files:**
 - Create: `src/lib/nonogram/solve.ts`
@@ -547,13 +547,21 @@ git commit -m "feat: nonogram constraint-based win detection"
 
 **Interfaces:**
 - Consumes: `Clue`, `Cell`, `lineFeasible`.
-- Produces: `arrangements(clue, N): number[][]`; `countSolutions(rowClues, colClues, N, cap?): { status: "ok"; count: number } | { status: "unknown" }`.
+- Produces:
+  - `arrangements(clue, N): number[][]`
+  - `countSolutions(rowClues, colClues, N, cap?): { status: "ok"; count: number } | { status: "unknown" }` — backtracking uniqueness count.
+  - `interface LineSolveResult { solved: boolean; rounds: number }`
+  - `lineSolve(rowClues, colClues, N): LineSolveResult` — pure constraint propagation (no guessing). `solved === true` means the grid is fully determined by line logic alone, which **implies a unique solution**.
+  - `type Difficulty = "forager" | "woodlander" | "mycologist"`
+  - `difficultyOf(rowClues, colClues, N): Difficulty` — grades via the line-solver; `mycologist` also covers "requires guessing" (line-solver stalls).
+
+**Why both:** `lineSolve(...).solved` is the strong quality gate (no-guess ⟹ unique). `countSolutions` stays as an independent uniqueness cross-check and is what the later Studio slice needs to distinguish a *unique-but-guess-requiring* puzzle from a broken one.
 
 - [ ] **Step 1: Write the failing test** — `src/lib/nonogram/solve.test.ts`
 
 ```ts
 import { describe, it, expect } from "vitest";
-import { arrangements, countSolutions } from "./solve";
+import { arrangements, countSolutions, lineSolve, difficultyOf } from "./solve";
 import { cluesFor } from "./clues";
 import type { Puzzle } from "./types";
 
@@ -586,6 +594,29 @@ describe("countSolutions", () => {
     const colClues = [[1], [1]];
     const res = countSolutions(rowClues, colClues, 2, 2);
     expect(res).toEqual({ status: "ok", count: 2 });
+  });
+});
+
+describe("lineSolve", () => {
+  it("fully solves a line-solvable puzzle by logic alone", () => {
+    const tee: Puzzle = { id: "t", name: "Tee", size: 3, rows: ["###", ".#.", ".#."] };
+    const { rowClues, colClues } = cluesFor(tee);
+    expect(lineSolve(rowClues, colClues, 3).solved).toBe(true);
+  });
+  it("reports unsolved when a clue set requires guessing", () => {
+    // 2×2 with [1]/[1] rows & cols: two solutions, line logic forces nothing
+    expect(lineSolve([[1], [1]], [[1], [1]], 2).solved).toBe(false);
+  });
+});
+
+describe("difficultyOf", () => {
+  it("grades a simple line-solvable puzzle below mycologist", () => {
+    const tee: Puzzle = { id: "t", name: "Tee", size: 3, rows: ["###", ".#.", ".#."] };
+    const { rowClues, colClues } = cluesFor(tee);
+    expect(["forager", "woodlander"]).toContain(difficultyOf(rowClues, colClues, 3));
+  });
+  it("labels a guess-requiring set as mycologist", () => {
+    expect(difficultyOf([[1], [1]], [[1], [1]], 2)).toBe("mycologist");
   });
 });
 ```
@@ -686,18 +717,101 @@ export function countSolutions(
   dfs(0);
   return aborted ? { status: "unknown" } : { status: "ok", count };
 }
+
+// ---- Line-solver (pure constraint propagation, no guessing) ----
+// Internal grid representation: 0 unknown · 1 filled · 2 empty (matches `arrangements`).
+
+function consistent(a: number[], marks: number[]): boolean {
+  for (let i = 0; i < a.length; i++) {
+    if (marks[i] === 1 && a[i] !== 1) return false;
+    if (marks[i] === 2 && a[i] !== 2) return false;
+  }
+  return true;
+}
+
+// For one line, fill every cell that ALL consistent arrangements agree on.
+function lineForced(marks: number[], clue: Clue, N: number): number[] {
+  const opts = arrangements(clue, N);
+  if (opts.length > 60000) return marks; // too many to enumerate cheaply
+  const cons = opts.filter((a) => consistent(a, marks));
+  if (cons.length === 0) return marks; // contradiction; leave as-is
+  const res = marks.slice();
+  for (let i = 0; i < N; i++) {
+    if (res[i] === 0) {
+      const v = cons[0][i];
+      let all = true;
+      for (let k = 1; k < cons.length; k++)
+        if (cons[k][i] !== v) {
+          all = false;
+          break;
+        }
+      if (all) res[i] = v;
+    }
+  }
+  return res;
+}
+
+export interface LineSolveResult {
+  solved: boolean; // grid fully determined by line logic alone (⟹ unique)
+  rounds: number; // propagation rounds to fixpoint
+}
+
+export function lineSolve(rowClues: Clue[], colClues: Clue[], N: number): LineSolveResult {
+  const known: number[][] = Array.from({ length: N }, () => new Array(N).fill(0));
+  let rounds = 0;
+  let changed = true;
+  while (changed && rounds < 80) {
+    changed = false;
+    rounds++;
+    for (let r = 0; r < N; r++) {
+      const nm = lineForced(known[r], rowClues[r], N);
+      for (let c = 0; c < N; c++)
+        if (nm[c] !== known[r][c]) {
+          known[r][c] = nm[c];
+          changed = true;
+        }
+    }
+    for (let c = 0; c < N; c++) {
+      const cm = known.map((row) => row[c]);
+      const nm = lineForced(cm, colClues[c], N);
+      for (let r = 0; r < N; r++)
+        if (nm[r] !== known[r][c]) {
+          known[r][c] = nm[r];
+          changed = true;
+        }
+    }
+  }
+  let solved = true;
+  for (let r = 0; r < N && solved; r++)
+    for (let c = 0; c < N; c++)
+      if (known[r][c] === 0) {
+        solved = false;
+        break;
+      }
+  return { solved, rounds };
+}
+
+export type Difficulty = "forager" | "woodlander" | "mycologist";
+
+export function difficultyOf(rowClues: Clue[], colClues: Clue[], N: number): Difficulty {
+  const { solved, rounds } = lineSolve(rowClues, colClues, N);
+  if (!solved) return "mycologist"; // requires guessing
+  if (rounds <= 2) return "forager";
+  if (rounds <= 5) return "woodlander";
+  return "mycologist";
+}
 ```
 
 - [ ] **Step 4: Run to verify it passes**
 
 Run: `pnpm test:run src/lib/nonogram/solve.test.ts`
-Expected: PASS (5 tests).
+Expected: PASS (9 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add -A
-git commit -m "feat: nonogram uniqueness solver"
+git commit -m "feat: nonogram uniqueness solver + line-solver/difficulty"
 ```
 
 ---
@@ -729,7 +843,7 @@ export * from "./solve";
 ```ts
 import { describe, it, expect } from "vitest";
 import { BUILTINS } from "./builtins";
-import { cluesFor, countSolutions } from "@/lib/nonogram";
+import { cluesFor, countSolutions, lineSolve, difficultyOf } from "@/lib/nonogram";
 
 describe("BUILTINS", () => {
   it("has at least 4 puzzles", () => {
@@ -746,14 +860,36 @@ describe("BUILTINS", () => {
     }
   });
 
-  it("every puzzle is uniquely solvable", () => {
+  // PRIMARY GATE: solvable by pure line logic, no guessing (this also implies a unique solution).
+  it("every puzzle is line-solvable without guessing", () => {
     for (const p of BUILTINS) {
       const { rowClues, colClues } = cluesFor(p);
-      const res = countSolutions(rowClues, colClues, p.size, 2);
-      expect(res, `"${p.name}" should be uniquely solvable`).toEqual({
-        status: "ok",
-        count: 1,
-      });
+      expect(
+        lineSolve(rowClues, colClues, p.size).solved,
+        `"${p.name}" must be solvable by logic alone (no guessing)`,
+      ).toBe(true);
+    }
+  });
+
+  // CROSS-CHECK: independent backtracking count agrees there is exactly one solution.
+  it("every puzzle has exactly one solution", () => {
+    for (const p of BUILTINS) {
+      const { rowClues, colClues } = cluesFor(p);
+      expect(
+        countSolutions(rowClues, colClues, p.size, 2),
+        `"${p.name}" should be uniquely solvable`,
+      ).toEqual({ status: "ok", count: 1 });
+    }
+  });
+
+  // Difficulty grades to a real tier (never undefined); built-ins should not be mycologist.
+  it("every puzzle grades to forager or woodlander", () => {
+    for (const p of BUILTINS) {
+      const { rowClues, colClues } = cluesFor(p);
+      expect(
+        ["forager", "woodlander"],
+        `"${p.name}" graded too hard for a built-in`,
+      ).toContain(difficultyOf(rowClues, colClues, p.size));
     }
   });
 
@@ -771,7 +907,7 @@ Expected: FAIL — cannot find module `./builtins`.
 
 - [ ] **Step 4: Create `src/lib/puzzles/builtins.ts`**
 
-Start from the prototype defaults plus two 5×5 starters. **The uniqueness test is the gate** — when you run it (next step), any puzzle reported with `count: 2` (multiple solutions) or `status: "unknown"` must be edited (add/remove `#`s) until it resolves to exactly one solution. The prototype's 10×10 defaults were never verified unique, so expect to adjust.
+Start from the prototype defaults plus two 5×5 starters. **The line-solvability test is the gate** (it implies uniqueness): when you run the tests (next step), any puzzle that isn't solvable by pure logic — `lineSolve(...).solved === false`, or graded `mycologist` (needs guessing), or with more than one solution — must be edited (add/remove `#`s, keeping the picture recognizable) until every assertion passes. The prototype's 10×10 defaults were never verified, so expect to adjust them.
 
 ```ts
 import type { Puzzle } from "@/lib/nonogram";
@@ -843,10 +979,10 @@ export const BUILTINS: Puzzle[] = [
 ];
 ```
 
-- [ ] **Step 5: Run the uniqueness gate and fix non-unique puzzles**
+- [ ] **Step 5: Run the gate and fix any puzzle that needs guessing or isn't unique**
 
 Run: `pnpm test:run src/lib/puzzles/builtins.test.ts`
-Expected: ideally PASS. If the "uniquely solvable" test fails for a puzzle, edit that puzzle's `rows` (add/remove filled cells while keeping the picture recognizable) and re-run until all four assertions PASS. Do not weaken the test.
+Expected: ideally PASS. If the "line-solvable", "exactly one solution", or "forager or woodlander" test fails for a puzzle, edit that puzzle's `rows` (add/remove filled cells while keeping the picture recognizable) and re-run until all assertions PASS. Do not weaken the tests.
 
 - [ ] **Step 6: Commit**
 
@@ -2042,7 +2178,7 @@ git commit -m "feat: PlayScreen + wire core play to / route"
 
 ## Self-Review Notes (for the implementer)
 
-- **Spec coverage:** pure logic module (Tasks 2–6), built-ins + uniqueness guard (7), reducer/hook with constraint-based win + timer (8), accessible Cell/ClueLine/Board with keyboard + non-color cues + live region (9–12). All spec sections map to a task.
+- **Spec coverage:** pure logic module incl. uniqueness + line-solver/difficulty (Tasks 2–6), built-ins behind a line-solvable-no-guess gate with uniqueness cross-check (7), reducer/hook with constraint-based win + timer (8), accessible Cell/ClueLine/Board with keyboard + non-color cues + live region (9–12). All spec sections map to a task.
 - **Out of scope (do NOT add):** Supabase, daily, library, archive, Studio, onboarding, persistence across reload, mobile pan/zoom, grids >10, color, 5-cell separators.
 - **Known a11y limitation for this slice:** clue lines are labeled for screen readers and the cell grid is fully navigable, but clues are not wired as formal ARIA row/column *headers*. That richer association is a deliberate later refinement; the live region + labeled clue lines give a usable non-visual experience now.
 - **If `pnpm lint` flags `vi` unused** in `Board.test.tsx`, remove the unused import.
