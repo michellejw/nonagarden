@@ -1,5 +1,6 @@
 # Approve native build scripts that create-next-app pulls in.
 # sharp = next/image optimization; unrs-resolver = eslint/oxc resolver.
 allowBuilds:
+  esbuild: false
   sharp: true
   unrs-resolver: true

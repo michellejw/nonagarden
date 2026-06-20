@@ -12,11 +12,13 @@ export function ThemeToggle() {
   // Sync from whatever the pre-paint script set on <html>.
   useEffect(() => {
     const current = document.documentElement.dataset.theme;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reads DOM once after mount to reconcile SSR default with pre-paint theme script; this is the canonical SSR-safe theme-sync pattern
     if (current === "twilight" || current === "forest") setTheme(current);
   }, []);
 
   function apply(next: Theme) {
     setTheme(next);
+    // eslint-disable-next-line react-hooks/immutability -- intentional: writing data-theme to <html> is the canonical DOM side-effect for SSR-safe theme toggling
     document.documentElement.dataset.theme = next;
     try {
       localStorage.setItem("theme", next);
