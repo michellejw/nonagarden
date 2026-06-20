@@ -26,10 +26,11 @@ interface CellButtonProps {
   onPointerDown: (e: React.PointerEvent, r: number, c: number) => void;
   onPointerEnter: (r: number, c: number) => void;
   registerRef: (r: number, c: number, el: HTMLButtonElement | null) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
 }
 
 export const CellButton = memo(function CellButton(props: CellButtonProps) {
-  const { r, c, value, px, tabbable, onPointerDown, onPointerEnter, registerRef } = props;
+  const { r, c, value, px, tabbable, onPointerDown, onPointerEnter, registerRef, onKeyDown } = props;
   const skin = value === 1 ? FILLED : REVEALED;
   return (
     <button
@@ -40,6 +41,7 @@ export const CellButton = memo(function CellButton(props: CellButtonProps) {
       ref={(el) => registerRef(r, c, el)}
       onPointerDown={(e) => onPointerDown(e, r, c)}
       onPointerEnter={() => onPointerEnter(r, c)}
+      onKeyDown={onKeyDown}
       onContextMenu={(e) => e.preventDefault()}
       className="rounded-[9px] flex items-center justify-center select-none font-mono font-semibold text-on-accent transition-transform duration-75 ease-out active:scale-[0.86]"
       style={{

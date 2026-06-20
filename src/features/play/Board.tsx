@@ -193,18 +193,18 @@ export function Board(props: BoardProps) {
               }}
             >
               {row.map((value, c) => (
-                <div key={c} onKeyDown={(e) => onKeyDown(e, r, c)}>
-                  <CellButton
-                    r={r}
-                    c={c}
-                    value={value}
-                    px={px}
-                    tabbable={focus.r === r && focus.c === c}
-                    onPointerDown={onPointerDown}
-                    onPointerEnter={onPointerEnter}
-                    registerRef={registerRef}
-                  />
-                </div>
+                <CellButton
+                  key={c}
+                  r={r}
+                  c={c}
+                  value={value}
+                  px={px}
+                  tabbable={focus.r === r && focus.c === c}
+                  onPointerDown={onPointerDown}
+                  onPointerEnter={onPointerEnter}
+                  registerRef={registerRef}
+                  onKeyDown={(e) => onKeyDown(e, r, c)}
+                />
               ))}
             </div>
           ))}
