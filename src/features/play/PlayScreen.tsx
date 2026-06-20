@@ -35,7 +35,7 @@ export function PlayScreen({ puzzles }: { puzzles: Puzzle[] }) {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="inline-flex min-w-[88px] items-center gap-2 rounded-pill bg-pill px-[15px] py-[9px]">
+            <div className="inline-flex min-w-[88px] items-center rounded-pill bg-pill px-[15px] py-[9px]">
               <span className="font-mono text-xl font-semibold tabular-nums text-ink">
                 {formatTime(game.elapsedMs)}
               </span>

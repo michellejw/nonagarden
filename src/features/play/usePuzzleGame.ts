@@ -30,6 +30,8 @@ export function usePuzzleGame(puzzles: Puzzle[]): PlayApi {
 
   useEffect(() => {
     if (!state.startTs || state.won) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: fires once when the timer starts to avoid a 0:00 cold-start flash; not a cascade, just an immediate clock sync
+    setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [state.startTs, state.won]);
@@ -74,11 +76,9 @@ export function usePuzzleGame(puzzles: Puzzle[]): PlayApi {
     markValueAt: (r, c) => (state.cells[r][c] === 2 ? 0 : 2),
     setMode: (mode) => dispatch({ type: "setMode", mode }),
     reset: () => dispatch({ type: "reset" }),
-    next: () =>
-      dispatch({
-        type: "load",
-        index: (state.index + 1) % puzzles.length,
-        puzzle: puzzles[(state.index + 1) % puzzles.length],
-      }),
+    next: () => {
+      const nextIndex = (state.index + 1) % puzzles.length;
+      dispatch({ type: "load", index: nextIndex, puzzle: puzzles[nextIndex] });
+    },
   };
 }
