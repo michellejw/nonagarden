@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/tokens/colors.css">
+<link rel="stylesheet" href="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/tokens/typography.css">
+<link rel="stylesheet" href="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/styles.css">
+<script src="_ds/shroom-games-design-system-abeb3ddb-5a7d-45b4-ad50-599d3c0185f0/_ds_bundle.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  @keyframes ng-pop { from { transform: scale(.6); } to { transform: scale(1); } }
+  /* The DS only declares its semantic aliases in the forest block, so re-resolve them
+     against the twilight primitives when dark mode is scoped to a wrapper element. */
+  [data-theme="twilight"] {
+    --surface-app: var(--shroom-app);
+    --surface-board: var(--shroom-board);
+    --surface-card: var(--shroom-card);
+    --surface-pill: var(--shroom-pill);
+    --accent: var(--shroom-accent);
+    --on-accent: var(--shroom-on-accent);
+    --text-strong: var(--shroom-text);
+    --text-soft: var(--shroom-text-soft);
+  }
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="min-height:100vh; background:var(--surface-app); font-family:var(--font-display); -webkit-font-smoothing:antialiased; display:flex; align-items:center; justify-content:center; padding:40px 24px;">
+  <div style="width:fit-content;">
+
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:28px; margin-bottom:20px;">
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <div style="font-size:var(--text-xs); font-weight:var(--fw-semibold); letter-spacing:var(--tracking-label); text-transform:uppercase; color:var(--text-soft);">Nonogram</div>
+        <div style="font-size:var(--text-hero); font-weight:var(--fw-semibold); color:var(--text-strong); letter-spacing:-0.3px; line-height:1; white-space:nowrap;">{{ sizeLabel }}</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="display:inline-flex; align-items:center; gap:8px; background:var(--surface-pill); border-radius:var(--radius-pill); padding:9px 15px; min-width:88px; box-sizing:border-box;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="flex:none;"><circle cx="12" cy="13.5" r="7.5" stroke="var(--text-soft)" stroke-width="2.1"/><path d="M12 9.8V13.5l2.4 2.2" stroke="var(--text-soft)" stroke-width="2.1" stroke-linecap="round"/><path d="M9.6 3.6h4.8" stroke="var(--text-soft)" stroke-width="2.1" stroke-linecap="round"/></svg>
+          <span style="font-family:var(--font-mono); font-weight:var(--fw-semibold); font-size:var(--text-xl); color:var(--text-strong); font-variant-numeric:tabular-nums;">{{ timer }}</span>
+        </div>
+        <x-import component-from-global-scope="ShroomGamesDesignSystem_abeb3d.SegmentedControl" options="{{ themeOptions }}" value="{{ theme }}" onChange="{{ setTheme }}" variant="soft" hint-size="148px,40px"></x-import>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; align-items:flex-start;">
+      <div style="display:flex;">
+        <div style="{{ spacerStyle }}"></div>
+        <div style="{{ topGridStyle }}">
+          <sc-for list="{{ topClues }}" as="col" hint-placeholder-count="10">
+            <div style="display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:2px; height:100%;">
+              <sc-for list="{{ col.items }}" as="it" hint-placeholder-count="2">
+                <span style="{{ it.style }}">{{ it.n }}</span>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:flex;">
+        <div style="{{ leftGridStyle }}">
+          <sc-for list="{{ leftClues }}" as="row" hint-placeholder-count="10">
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:7px; width:100%; padding-right:9px;">
+              <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="2">
+                <span style="{{ it.style }}">{{ it.n }}</span>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="{{ boardStyle }}" onContextMenu="{{ onContext }}">
+          <sc-for list="{{ cells }}" as="cell" hint-placeholder-count="100">
+            <div style="{{ cell.style }}" style-active="transform:scale(.86)" onMouseDown="{{ cell.onDown }}" onMouseEnter="{{ cell.onEnter }}" onContextMenu="{{ onContext }}">{{ cell.content }}</div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:20px;">
+      <x-import component-from-global-scope="ShroomGamesDesignSystem_abeb3d.SegmentedControl" options="{{ modeOptions }}" value="{{ mode }}" onChange="{{ setMode }}" variant="soft" hint-size="150px,40px"></x-import>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <x-import component-from-global-scope="ShroomGamesDesignSystem_abeb3d.Button" variant="ghost" size="sm" onClick="{{ reset }}" hint-size="74px,40px">Reset</x-import>
+        <x-import component-from-global-scope="ShroomGamesDesignSystem_abeb3d.Button" variant="secondary" size="sm" onClick="{{ nextPuzzle }}" hint-size="120px,40px">New picture</x-import>
+      </div>
+    </div>
+
+    <sc-if value="{{ hasConflict }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:14px; display:flex; align-items:center; gap:8px; font-size:var(--text-sm); font-weight:var(--fw-medium); color:var(--mushroom-cap);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 4l8 14H4L12 4z" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/><path d="M12 10v3.6" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><circle cx="12" cy="16.4" r="1.05" fill="currentColor"/></svg>
+        A highlighted clue can't be satisfied yet — something above it needs to change.
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ won }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:16px;">
+        <x-import component-from-global-scope="ShroomGamesDesignSystem_abeb3d.ResultCard" title="{{ winTitle }}" subtitle="{{ winSub }}" actions="{{ winActions }}" hint-size="385px,130px"></x-import>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    // Built-in starter puzzles. Authored puzzles from the Editor (saved to the shared
+    // 'nonogram_library' store) are merged in after these on load.
+    this.defaults = [
+      { name: 'Toadstool', rows: [
+        '...####...','.########.','##########','##########','.########.',
+        '...####...','....##....','....##....','...####...','..######..' ] },
+      { name: 'Heart', rows: [
+        '.##....##.','##########','##########','##########','.########.',
+        '..######..','...####...','....##....','..........','..........' ] },
+      { name: 'Cottage', rows: [
+        '....#.....','...###....','..#####...','.#######..','#########.',
+        '.#######..','.#.....#..','.#.###.#..','.#.###.#..','.#.###.#..' ] },
+    ];
+    this.state = {
+      pics: this.defaults.slice(),
+      pi: 0,
+      cells: this.blank(this.defaults[0]),
+      mode: 'fill',
+      theme: 'forest',
+      startTs: null, now: Date.now(), won: false, elapsed: 0,
+    };
+    this.drag = null;
+    this._up = () => { this.drag = null; };
+    this._onStorage = (e) => { if (e.key === 'nonogram_library') this.loadLibrary(); };
+  }
+
+  componentDidMount() {
+    window.addEventListener('mouseup', this._up);
+    window.addEventListener('storage', this._onStorage);
+    this._tick = setInterval(() => {
+      if (this.state.startTs && !this.state.won) this.setState({ now: Date.now() });
+    }, 250);
+    this.loadLibrary();
+  }
+  componentWillUnmount() {
+    window.removeEventListener('mouseup', this._up);
+    window.removeEventListener('storage', this._onStorage);
+    clearInterval(this._tick);
+  }
+
+  // The same store the Editor writes to. Swap this for a Supabase fetch later.
+  loadLibrary() {
+    let extra = [];
+    try {
+      const arr = JSON.parse(localStorage.getItem('nonogram_library') || '[]');
+      if (Array.isArray(arr)) extra = arr
+        .map(p => ({ name: p.title || 'Untitled', rows: p.rows }))
+        .filter(p => Array.isArray(p.rows) && p.rows.length && p.rows.every(r => typeof r === 'string'));
+    } catch (e) {}
+    this.setState(s => {
+      const pics = this.defaults.concat(extra);
+      return { pics, pi: Math.min(s.pi, pics.length - 1) };
+    });
+  }
+
+  blank(pic) { return pic.rows.map(r => r.split('').map(() => 0)); }
+  solOf(pic) { return pic.rows.map(r => r.split('').map(c => c === '#')); }
+
+  clueOf(arr) {
+    const res = []; let run = 0;
+    for (const v of arr) { if (v) run++; else { if (run) { res.push(run); run = 0; } } }
+    if (run) res.push(run);
+    return res.length ? res : [0];
+  }
+  col(grid, c) { return grid.map(row => row[c]); }
+
+  lineSatisfied(marks, clue) {
+    const runs = []; let r = 0;
+    for (const v of marks) { if (v === 1) r++; else { if (r) { runs.push(r); r = 0; } } }
+    if (r) runs.push(r);
+    const rr = runs.length ? runs : [0];
+    if (rr.length !== clue.length) return false;
+    for (let i = 0; i < clue.length; i++) if (rr[i] !== clue[i]) return false;
+    return true;
+  }
+
+  // Can the clue still be completed given current marks? (1 filled, 2 known-empty, 0 unknown)
+  lineFeasible(marks, clue) {
+    const n = marks.length;
+    if (clue.length === 1 && clue[0] === 0) return !marks.includes(1);
+    const m = clue.length;
+    const memo = new Map();
+    const go = (i, j) => {
+      if (j === m) { for (let k = i; k < n; k++) if (marks[k] === 1) return false; return true; }
+      if (i >= n) return false;
+      const key = i * 64 + j;
+      if (memo.has(key)) return memo.get(key);
+      let res = false;
+      if (marks[i] !== 1) { if (go(i + 1, j)) res = true; }
+      if (!res) {
+        const len = clue[j];
+        if (i + len <= n) {
+          let ok = true;
+          for (let k = i; k < i + len; k++) if (marks[k] === 2) { ok = false; break; }
+          if (ok && i + len < n && marks[i + len] === 1) ok = false;
+          if (ok) { const ni = i + len + (i + len < n ? 1 : 0); if (go(ni, j + 1)) res = true; }
+        }
+      }
+      memo.set(key, res);
+      return res;
+    };
+    return go(0, 0);
+  }
+
+  setMode(mode) { this.setState({ mode }); }
+  setTheme(theme) { this.setState({ theme }); }
+  reset() { this.setState(s => ({ cells: this.blank(s.pics[s.pi]), startTs: null, won: false, elapsed: 0 })); }
+  nextPuzzle() {
+    this.setState(s => {
+      const pi = (s.pi + 1) % s.pics.length;
+      return { pi, cells: this.blank(s.pics[pi]), startTs: null, won: false, elapsed: 0 };
+    });
+  }
+
+  onDown(r, c, e) {
+    e.preventDefault();
+    if (this.state.won) return;
+    const cur = this.state.cells[r][c];
+    let value;
+    if (e.button === 2) value = (cur === 2) ? 0 : 2;
+    else if (this.state.mode === 'fill') value = (cur === 1) ? 0 : 1;
+    else value = (cur === 2) ? 0 : 2;
+    this.drag = { value };
+    this.apply(r, c, value);
+  }
+  onEnter(r, c) { if (this.drag) this.apply(r, c, this.drag.value); }
+
+  apply(r, c, value) {
+    this.setState(s => {
+      if (s.won) return null;
+      const cur = s.cells[r][c];
+      let changed = false;
+      const cells = s.cells.map(row => row.slice());
+      if (value === 1) { if (cur === 0) { cells[r][c] = 1; changed = true; } }
+      else if (value === 2) { if (cur === 0) { cells[r][c] = 2; changed = true; } }
+      else { if (cur !== 0) { cells[r][c] = 0; changed = true; } }
+      if (!changed) return null;
+      const startTs = s.startTs == null ? Date.now() : s.startTs;
+      // win = every row & column clue satisfied (no peeking at the solution cells)
+      const pic = s.pics[s.pi];
+      const sol = this.solOf(pic);
+      const N = sol.length;
+      let won = true;
+      for (let i = 0; i < N && won; i++) if (!this.lineSatisfied(cells[i], this.clueOf(sol[i]))) won = false;
+      for (let j = 0; j < N && won; j++) if (!this.lineSatisfied(this.col(cells, j), this.clueOf(this.col(sol, j)))) won = false;
+      const out = { cells, startTs };
+      if (won) { out.won = true; out.elapsed = Date.now() - startTs; }
+      return out;
+    });
+  }
+
+  fmt(ms) {
+    const s = Math.max(0, Math.floor(ms / 1000));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pic = s.pics[s.pi];
+    const sol = this.solOf(pic);
+    const N = sol.length;
+    const CELL = N <= 5 ? 46 : (N <= 10 ? 34 : 26);
+    const GAP = N <= 10 ? 5 : 4;
+    const rowClues = sol.map(row => this.clueOf(row));
+    const colClues = []; for (let c = 0; c < N; c++) colClues.push(this.clueOf(this.col(sol, c)));
+    const maxRow = Math.max(1, ...rowClues.map(c => c.length));
+    const maxCol = Math.max(1, ...colClues.map(c => c.length));
+    const LEFTW = Math.max(62, maxRow * 18 + 16);
+    const TOPH = Math.max(62, maxCol * 19 + 12);
+
+    const rowMarks = s.cells;
+    const colMarks = []; for (let c = 0; c < N; c++) colMarks.push(this.col(s.cells, c));
+    const rowSat = rowMarks.map((m, r) => this.lineSatisfied(m, rowClues[r]));
+    const colSat = colMarks.map((m, c) => this.lineSatisfied(m, colClues[c]));
+    const rowBad = rowMarks.map((m, r) => !this.lineFeasible(m, rowClues[r]));
+    const colBad = colMarks.map((m, c) => !this.lineFeasible(m, colClues[c]));
+    const hasConflict = !s.won && (rowBad.some(Boolean) || colBad.some(Boolean));
+
+    const clueSpan = (n, state) => {
+      let color = 'var(--text-strong)', opacity = 1;
+      if (state === 'bad') color = 'var(--mushroom-cap)';
+      else if (state === 'done') { color = 'var(--text-soft)'; opacity = 0.4; }
+      return { n, style: `font-family:var(--font-mono); font-size:14px; font-weight:var(--fw-semibold); line-height:1; color:${color}; opacity:${opacity};` };
+    };
+    const stateFor = (sat, bad) => s.won ? 'done' : (bad ? 'bad' : (sat ? 'done' : 'normal'));
+
+    const topClues = colClues.map((items, c) => ({ items: items.map(n => clueSpan(n, stateFor(colSat[c], colBad[c]))) }));
+    const leftClues = rowClues.map((items, r) => ({ items: items.map(n => clueSpan(n, stateFor(rowSat[r], rowBad[r]))) }));
+
+    const cellBase = `width:${CELL}px; height:${CELL}px; border-radius:var(--radius-tile); display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:18px; font-weight:var(--fw-semibold); cursor:pointer; user-select:none; -webkit-user-select:none; transition:transform .06s var(--ease-soft);`;
+    const cells = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      const v = s.cells[r][c];
+      let skin, content = '';
+      if (v === 1) skin = `background:var(--accent); box-shadow:inset 0 -3px 0 rgba(0,0,0,0.20); color:transparent;`;
+      else if (v === 2) { skin = `background:var(--tile-revealed); box-shadow:inset 0 0 0 1px var(--tile-revealed-edge); color:var(--text-soft);`; content = '\u00D7'; }
+      else skin = `background:var(--tile-revealed); box-shadow:inset 0 0 0 1px var(--tile-revealed-edge); color:transparent;`;
+      cells.push({
+        style: cellBase + skin,
+        content,
+        onDown: (e) => this.onDown(r, c, e),
+        onEnter: () => this.onEnter(r, c),
+      });
+    }
+
+    const time = this.fmt(s.won ? s.elapsed : (s.startTs ? s.now - s.startTs : 0));
+
+    return {
+      theme: s.theme,
+      themeOptions: [{ value: 'forest', label: 'Light' }, { value: 'twilight', label: 'Dark' }],
+      setTheme: (v) => this.setTheme(v),
+      modeOptions: [{ value: 'fill', label: 'Fill' }, { value: 'mark', label: 'Mark' }],
+      mode: s.mode,
+      setMode: (v) => this.setMode(v),
+      sizeLabel: N + ' \u00D7 ' + N,
+      timer: time,
+      spacerStyle: `width:${LEFTW}px; flex:none;`,
+      topGridStyle: `display:grid; grid-template-columns:repeat(${N}, ${CELL}px); gap:${GAP}px; padding-left:9px; height:${TOPH}px; align-items:end;`,
+      leftGridStyle: `display:grid; grid-template-rows:repeat(${N}, ${CELL}px); gap:${GAP}px; width:${LEFTW}px; padding-top:9px;`,
+      boardStyle: `display:grid; grid-template-columns:repeat(${N}, ${CELL}px); grid-auto-rows:${CELL}px; gap:${GAP}px; padding:9px; background:var(--surface-board); border-radius:var(--radius-board);`,
+      topClues, leftClues, cells,
+      onContext: (e) => e.preventDefault(),
+      reset: () => this.reset(),
+      nextPuzzle: () => this.nextPuzzle(),
+      hasConflict,
+      won: s.won,
+      winTitle: 'Picture complete!',
+      winSub: "It\u2019s a " + pic.name.toLowerCase() + ' \u2014 solved in ' + this.fmt(s.elapsed) + '.',
+      winActions: [
+        { label: 'New picture', variant: 'secondary', onClick: () => this.nextPuzzle() },
+        { label: 'Play again', variant: 'primary', onClick: () => this.reset() },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

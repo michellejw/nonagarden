@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Shroom Games design tokens (single source of truth: ../shroomkit/tokens.json).
+   tokens.css = the --shroom-* / --radius-* / --space-* custom properties plus the
+   [data-theme="forest"] / [data-theme="twilight"] blocks.
+   theme.css = the Tailwind v4 @theme inline layer that exposes them as utilities
+   (bg-app, text-ink, bg-accent, …) which recolor live when data-theme flips. */
+@import "@shroomgames/tokens/tokens.css";
+@import "@shroomgames/tokens/theme.css";
+
+/* The token package carries weights + tracking but not web font families or a type
+   scale (its font.design values are SwiftUI Font.Design, not CSS). Supply those here.
+   --font-fredoka is injected on <html> by next/font in layout.tsx. */
+@theme inline {
+  --font-display: var(--font-fredoka), ui-rounded, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+  --text-eyebrow: 0.6875rem; /* 11px uppercase labels */
+  --text-hero: 2.5rem;
+}
+
+html {
+  background: var(--shroom-app);
+  color: var(--shroom-text);
+}
+
+body {
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
