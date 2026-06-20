@@ -42,6 +42,14 @@ body {
   border: 0;
 }
 
+/* Soft terracotta tint behind the clue numbers of a row/column that currently
+   can't be satisfied — points the eye at WHERE the conflict is. The numbers
+   themselves are already terracotta + underlined (a non-color cue too). */
+.clue-line[data-state="impossible"] {
+  background-color: color-mix(in oklab, var(--mushroom-cap) 15%, transparent);
+  border-radius: 8px;
+}
+
 @keyframes ng-rise {
   from {
     opacity: 0;

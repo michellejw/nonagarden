@@ -10,10 +10,13 @@ describe("ClueLine", () => {
     expect(group).toHaveTextContent("1");
   });
 
-  it("shows a non-color cue when impossible", () => {
+  it("shows a non-color cue when impossible and exposes the tint styling hook", () => {
     render(<ClueLine items={[2]} state="impossible" orientation="row" label="Row 1 clues: 2" />);
-    // data attribute carries the state for the non-color affordance + styling
-    expect(screen.getByLabelText("Row 1 clues: 2")).toHaveAttribute("data-state", "impossible");
+    const line = screen.getByLabelText("Row 1 clues: 2");
+    // data attribute drives the non-color affordance + the terracotta tint
+    expect(line).toHaveAttribute("data-state", "impossible");
+    // .clue-line is the CSS hook that .clue-line[data-state="impossible"] tints
+    expect(line).toHaveClass("clue-line");
   });
 
   it("renders nothing visible for an empty [0] clue", () => {

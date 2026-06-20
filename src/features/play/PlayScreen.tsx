@@ -15,11 +15,20 @@ const MODES: { value: Mode; label: string }[] = [
 export function PlayScreen({ puzzles }: { puzzles: Puzzle[] }) {
   const game = usePuzzleGame(puzzles);
 
+  // Name the specific lines that currently can't be satisfied, so the spoken cue
+  // matches the visual tint (and is far more useful than a generic sentence).
+  const conflictLines = [
+    ...game.rowState.flatMap((s, i) => (s === "impossible" ? [`row ${i + 1}`] : [])),
+    ...game.colState.flatMap((s, i) => (s === "impossible" ? [`column ${i + 1}`] : [])),
+  ];
+  const conflictMessage =
+    conflictLines.length > 0
+      ? `${conflictLines.join(", ").replace(/^./, (c) => c.toUpperCase())} can't be satisfied yet.`
+      : "";
+
   const liveMessage = game.won
     ? `Picture complete — it's a ${game.puzzle.name.toLowerCase()}, solved in ${formatTime(game.elapsedMs)}.`
-    : game.hasConflict
-      ? "A highlighted clue can't be satisfied yet — something above it needs to change."
-      : "";
+    : conflictMessage;
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-10">
@@ -94,13 +103,9 @@ export function PlayScreen({ puzzles }: { puzzles: Puzzle[] }) {
           </div>
         </div>
 
-        {/* conflict hint (non-color: icon + text) */}
-        {game.hasConflict && !game.won && (
-          <div className="mt-[14px] flex items-center gap-2 text-sm font-medium" style={{ color: "var(--mushroom-cap)" }}>
-            <span aria-hidden="true">▲</span>
-            A highlighted clue can&apos;t be satisfied yet — something above it needs to change.
-          </div>
-        )}
+        {/* Conflict is shown visually by the tinted clue line(s) on the board
+            (ClueLine `impossible` state) and announced to screen readers via the
+            live region below — no separate generic hint sentence. */}
 
         {/* win card */}
         {game.won && (

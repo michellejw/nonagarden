@@ -30,12 +30,15 @@ describe("PlayScreen", () => {
     expect(status).toHaveTextContent(/it's a tee/i);
   });
 
-  it("surfaces a conflict cue when a line becomes impossible", () => {
+  it("surfaces a conflict cue naming the offending line when one becomes impossible", () => {
     render(<PlayScreen puzzles={[tee]} />);
     const cells = screen.getAllByRole("gridcell");
-    // row 1 (index 3,4,5) clue is [1]; filling two cells in it makes it impossible
+    // row 2 (indices 3,4,5) clue is [1]; filling two non-adjacent cells in it makes it impossible
     fireEvent.pointerDown(cells[3], { button: 0 });
     fireEvent.pointerDown(cells[5], { button: 0 });
-    expect(screen.getByRole("status")).toHaveTextContent(/can't be satisfied/i);
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent(/can't be satisfied/i);
+    // the announcement names WHERE the problem is, not a generic sentence
+    expect(status).toHaveTextContent(/row 2/i);
   });
 });

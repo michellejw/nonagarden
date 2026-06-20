@@ -24,8 +24,8 @@ export function ClueLine({ items, state, orientation, label }: ClueLineProps) {
       data-state={state}
       className={
         orientation === "row"
-          ? "flex w-full items-center justify-end gap-[7px] pr-[9px]"
-          : "flex h-full flex-col items-center justify-end gap-[2px]"
+          ? "clue-line flex w-full items-center justify-end gap-[7px] pr-[9px]"
+          : "clue-line flex h-full flex-col items-center justify-end gap-[2px]"
       }
     >
       {isEmpty
