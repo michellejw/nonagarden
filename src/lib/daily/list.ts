@@ -10,5 +10,16 @@ export const DAILY_LIST: readonly string[] = [
   "toadstool",
   "heart",
   "cottage",
-  // Task 4 appends ≥9 more here.
+  // Task 4: verified puzzles appended below (unique + line-solvable)
+  "snail",
+  "acorn",
+  "bee",
+  "fish",
+  "star",
+  "cup",
+  "moon",
+  "key",
+  "flower",
+  "owl",
+  "teapot",
 ];
