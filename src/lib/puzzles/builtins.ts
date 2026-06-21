@@ -64,18 +64,20 @@ export const BUILTINS: Puzzle[] = [
       ".#.###.#..",
     ],
   },
-  // Task 4: verified puzzles (unique + line-solvable)
+  // Task 4: redesigned for visual clarity (unique + line-solvable, verified)
   {
     id: "snail",
     name: "Snail",
     size: 5,
-    rows: [".....", ".###.", "#####", ".###.", "..#.."],
+    // Shell spiral: outer oval with gap representing spiral interior
+    rows: [".###.", "##..#", "#.###", "##..#", ".###."],
   },
   {
     id: "acorn",
     name: "Acorn",
     size: 5,
-    rows: [".###.", "#####", ".###.", "..#..", ".###."],
+    // Wide flat cap (row of 5), round body, narrow stem
+    rows: ["#####", ".###.", ".###.", "..#..", "..#.."],
   },
   {
     id: "bee",
@@ -93,13 +95,15 @@ export const BUILTINS: Puzzle[] = [
     id: "star",
     name: "Star",
     size: 5,
-    rows: ["..#..", "#####", ".###.", "#.#.#", "..#.."],
+    // Top point, wide arm band, two side + two bottom corner points
+    rows: ["..#..", "#####", ".###.", "#.#.#", "#...#"],
   },
   {
     id: "cup",
     name: "Cup",
     size: 5,
-    rows: ["#.#.#", "#####", "#####", ".###.", "..#.."],
+    // U-shape walls + solid bottom + narrower footing
+    rows: ["#...#", "#...#", "#...#", "#####", ".###."],
   },
   {
     id: "moon",
@@ -117,16 +121,17 @@ export const BUILTINS: Puzzle[] = [
     id: "flower",
     name: "Flower",
     size: 10,
+    // Cross-shaped petals (N/S/E/W) around filled center — clear petal silhouette
     rows: [
       "....##....",
       "...####...",
       "..######..",
-      ".####.###.",
-      "##########",
-      ".####.###.",
+      ".##.##.##.",
+      "##.####.##",
+      "##.####.##",
+      ".##.##.##.",
       "..######..",
       "...####...",
-      "....##....",
       "....##....",
     ],
   },
@@ -151,16 +156,17 @@ export const BUILTINS: Puzzle[] = [
     id: "teapot",
     name: "Teapot",
     size: 10,
+    // Lid knob top-center, spout on left (open cavity rows 3-6), handle nubs on right
     rows: [
-      "...######.",
-      "..########",
-      ".#########",
-      "#.########",
-      "#.########",
-      ".#########",
-      "..########",
-      "...######.",
-      "....####..",
+      "....##....",
+      "..######..",
+      ".########.",
+      "#.######.#",
+      "#.######..",
+      "#.######..",
+      "#.######.#",
+      ".########.",
+      "..######..",
       "...######.",
     ],
   },
