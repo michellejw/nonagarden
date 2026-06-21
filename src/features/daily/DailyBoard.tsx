@@ -39,7 +39,7 @@ export function DailyBoard({
     ...game.colState.flatMap((s, i) => (s === "impossible" ? [`column ${i + 1}`] : [])),
   ];
   const liveMessage = game.won
-    ? `Picture complete — it's a ${game.puzzle.name.toLowerCase()}, solved in ${formatTime(game.elapsedMs)}.`
+    ? `Solved! It's a ${game.puzzle.name.toLowerCase()} — completed in ${formatTime(game.elapsedMs)}.`
     : conflictLines.length > 0
       ? `${conflictLines.join(", ").replace(/^./, (c) => c.toUpperCase())} can't be satisfied yet.`
       : "";
