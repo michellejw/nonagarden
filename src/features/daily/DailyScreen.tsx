@@ -126,7 +126,7 @@ function DailyShell({
                 className="inline-flex items-center rounded-pill bg-pill px-[15px] py-[9px] text-sm font-semibold text-ink"
                 aria-label={`Current streak: ${streak} ${streak === 1 ? "day" : "days"}`}
               >
-                🔥 {streak} day streak
+                🔥 {streak} day{streak === 1 ? "" : "s"} streak
               </div>
             )}
             <ThemeToggle />

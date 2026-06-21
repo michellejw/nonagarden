@@ -33,7 +33,7 @@ describe("DailyScreen", () => {
     for (const [r, c] of SPROUT_FILLS) {
       fireEvent.pointerDown(within(grid).getByLabelText(new RegExp(`Row ${r + 1}, column ${c + 1}`, "i")));
     }
-    expect(await screen.findByText(/Picture complete/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Picture complete/i })).toBeInTheDocument();
     expect(screen.getByText(/come back tomorrow/i)).toBeInTheDocument();
     expect(screen.getByText(/1 day streak/i)).toBeInTheDocument();
   });
@@ -48,6 +48,6 @@ describe("DailyScreen", () => {
     };
     saveStore(done);
     render(<DailyScreen nowDate="2026-06-22" />);
-    expect(await screen.findByText(/Picture complete/i)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Picture complete/i })).toBeInTheDocument();
   });
 });
