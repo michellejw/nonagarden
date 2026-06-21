@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "NODE_OPTIONS=--no-experimental-webstorage vitest",
+    "test:run": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
