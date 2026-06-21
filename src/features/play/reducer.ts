@@ -32,6 +32,21 @@ export function initState(puzzles: Puzzle[]): PlayState {
   };
 }
 
+export function seedState(
+  puzzle: Puzzle,
+  saved: { cells: Grid; won: boolean; frozenElapsed: number },
+): PlayState {
+  return {
+    index: 0,
+    puzzle,
+    cells: saved.cells.map((row) => row.slice()) as Grid,
+    mode: "fill",
+    startTs: null,
+    won: saved.won,
+    frozenElapsed: saved.frozenElapsed,
+  };
+}
+
 export function reducer(state: PlayState, action: PlayAction): PlayState {
   switch (action.type) {
     case "apply": {
