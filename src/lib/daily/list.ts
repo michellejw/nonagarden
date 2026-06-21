@@ -11,7 +11,7 @@ export const DAILY_LIST: readonly string[] = [
   "heart",
   "cottage",
   // Task 4: verified puzzles appended below (unique + line-solvable)
-  "snail",
+  "mushroom",
   "acorn",
   "bee",
   "fish",

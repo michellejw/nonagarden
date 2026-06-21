@@ -66,11 +66,11 @@ export const BUILTINS: Puzzle[] = [
   },
   // Task 4: redesigned for visual clarity (unique + line-solvable, verified)
   {
-    id: "snail",
-    name: "Snail",
+    id: "mushroom",
+    name: "Mushroom",
     size: 5,
-    // Shell spiral: outer oval with gap representing spiral interior
-    rows: [".###.", "##..#", "#.###", "##..#", ".###."],
+    // Dome cap (rows 0-2) + stem (rows 3-4) — unmistakable at 5×5
+    rows: [".###.", "#####", ".###.", "..#..", "..#.."],
   },
   {
     id: "acorn",
@@ -156,18 +156,19 @@ export const BUILTINS: Puzzle[] = [
     id: "teapot",
     name: "Teapot",
     size: 10,
-    // Lid knob top-center, spout on left (open cavity rows 3-6), handle nubs on right
+    // Lid knob top-center, spout protrudes LEFT (cols 0-1, rows 4-6),
+    // C-handle protrudes RIGHT (cols 8-9 at rows 3+7, col 9 at rows 4-6)
     rows: [
       "....##....",
+      "...####...",
       "..######..",
-      ".########.",
-      "#.######.#",
-      "#.######..",
-      "#.######..",
-      "#.######.#",
-      ".########.",
+      "..########",
+      "########.#",
+      "########.#",
+      "########.#",
+      "..########",
       "..######..",
-      "...######.",
+      "...####...",
     ],
   },
 ];
