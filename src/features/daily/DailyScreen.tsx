@@ -20,6 +20,7 @@ const byId = new Map(BUILTINS.map((p) => [p.id, p]));
 
 function formatLongDate(date: string): string {
   const [y, m, d] = date.split("-").map(Number);
+  // Pure: builds a Date from the given date string for formatting only — no clock is read here.
   return new Date(y, m - 1, d).toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",

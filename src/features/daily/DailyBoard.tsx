@@ -76,13 +76,15 @@ export function DailyBoard({
             );
           })}
         </div>
-        <button
-          type="button"
-          onClick={game.reset}
-          className="rounded-xl px-4 py-2 text-sm font-semibold text-ink-soft hover:text-ink"
-        >
-          Reset
-        </button>
+        {!game.won && (
+          <button
+            type="button"
+            onClick={game.reset}
+            className="rounded-xl px-4 py-2 text-sm font-semibold text-ink-soft hover:text-ink"
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {game.won && (
