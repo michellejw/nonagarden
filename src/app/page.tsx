@@ -1,6 +1,5 @@
-import { PlayScreen } from "@/features/play/PlayScreen";
-import { BUILTINS } from "@/lib/puzzles/builtins";
+import { DailyScreen } from "@/features/daily/DailyScreen";
 
 export default function Home() {
-  return <PlayScreen puzzles={BUILTINS} />;
+  return <DailyScreen />;
 }
