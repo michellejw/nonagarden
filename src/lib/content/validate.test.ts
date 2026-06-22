@@ -15,6 +15,6 @@ describe("gradeOrThrow", () => {
   it("throws for a puzzle with more than one solution", () => {
     // 2x2 with one filled per row/col is satisfied by BOTH diagonals → not unique.
     const ambiguous = { id: "bad", name: "Bad", size: 2, rows: ["#.", ".#"] };
-    expect(() => gradeOrThrow(ambiguous)).toThrow(/solution/i);
+    expect(() => gradeOrThrow(ambiguous)).toThrow(/line-solvable/i);
   });
 });
