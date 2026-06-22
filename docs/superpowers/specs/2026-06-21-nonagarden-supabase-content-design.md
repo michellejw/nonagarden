@@ -141,7 +141,7 @@ create policy "authenticated write schedule"
 fetchDailyContent(): Promise<{ puzzles: Puzzle[]; schedule: string[] }>
 ```
 - Fetches all `published` puzzles → maps each DB row to the existing `Puzzle` shape (`{ id, name, size, rows }`; `slug`/`difficulty`/`status`/timestamps are dropped at this boundary — the Daily doesn't need them).
-- Fetches `daily_schedule` ordered by `position`, returning `schedule` as an ordered array of **puzzle ids** (uuids) — exactly the array `dailyFor` expects. Schedule entries whose puzzle isn't in the published set are filtered out (defensive; surfaces as a gap).
+- Fetches `daily_schedule` and builds `schedule` as an array **indexed by `position`** (puzzle id placed at `schedule[position]`; any positional hole filled with `""`) — exactly the array `dailyFor` expects. **Positional alignment is preserved, never compacted**: a position whose puzzle isn't in the published set leaves an id that won't resolve in the screen's `byId` map, surfacing as a gap (caught-up) *for that day only* — it must never shift later days' indices, or past-stability breaks.
 - Returns the full published set + full schedule (dozens of rows at this scale), so the **client** can resolve whatever its **local** date is — the server can't know the player's timezone. Windowing is a future-scale concern (YAGNI).
 
 ### 4. Daily page + screen (the re-point)
@@ -209,7 +209,8 @@ TDD, logic-first. `pnpm test` / `pnpm typecheck` / `pnpm lint` stay green; `pnpm
 ## Dependencies
 
 - Add `@supabase/supabase-js` (runtime read client + admin seed client).
-- A `pnpm seed` script that loads `.env.local` into the Node seed context (Node's built-in `--env-file`, no extra dependency required).
+- Add `tsx` (dev) to run the TypeScript seed script — app source uses extensionless relative imports that plain Node ESM won't resolve; `tsx` does bundler-style resolution. (No `tsconfig-paths` needed: the seed's only `@/` import is type-only and erased.)
+- A `pnpm seed` script: `node --env-file=.env.local --import tsx supabase/seed/seed.ts` — Node loads `.env.local`, `tsx` runs the TS.
 - Supabase CLI used out-of-band for migrations (not a package dependency of the app).
 
 ## File layout (new / changed)
