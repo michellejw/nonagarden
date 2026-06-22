@@ -34,7 +34,7 @@ The Daily is the schema's **first consumer**, but the schema is designed to also
 
 ## Non-goals (explicit YAGNI for this slice)
 
-- **No author login UI and no auth flow.** The RLS write-lock is written now (schema is secure from day one); the *door* — sign-in + the write paths — ships with **Studio**. Seeding goes through the secret `service_role` key, which bypasses RLS, so this slice needs no login.
+- **No author login UI and no auth flow.** The RLS write-lock is written now (schema is secure from day one); the *door* — sign-in + the write paths — ships with **Studio**. Seeding goes through the secret key (`sb_secret_...`), which bypasses RLS, so this slice needs no login.
 - **No write paths from the app**: no create / edit / publish / schedule UI; no image import, draw-on-grid, or live grading. All Studio.
 - **No Library or Archive UI.** This slice provisions the data those slices read; it renders no browse/replay affordance.
 - **No calendar-date scheduling**, no per-row scheduled dates, no holiday pinning.
@@ -52,9 +52,9 @@ supabase/
   migrations/
     0001_content.sql      puzzles + daily_schedule tables, indexes, RLS policies
   seed/
-    seed.ts               idempotent seed: validate (solver) → upsert puzzles → write schedule (service_role)
+    seed.ts               idempotent seed: validate (solver) → upsert puzzles → write schedule (secret key)
 src/lib/content/
-  client.ts               server-side Supabase read client (anon key) + seed/admin client (service_role)
+  client.ts               server-side Supabase read client (publishable key) + seed/admin client (secret key)
   content.ts              fetchDailyContent(): { puzzles: Puzzle[]; schedule: string[] } — maps DB rows → Puzzle
   content.test.ts         mapping/ordering/filter tests against a MOCKED client (no live network)
 src/app/page.tsx          Server Component: fetch (ISR) → <DailyScreen puzzles schedule/>
@@ -128,13 +128,13 @@ create policy "authenticated write schedule"
   RLS policies (below) still gate *which rows* each role sees; these grants only open the table to the Data API at all.
 - The **anon** role (the public browser key) can only `select` published puzzles + the schedule. It cannot read drafts or write anything.
 - **Authenticated** = the author. Since the suite is solo, "authenticated" *is* the author; narrowing to a specific `auth.uid()` is a trivial Studio-era refinement, noted not built.
-- The **seed/admin** path uses the `service_role` key, which **bypasses RLS entirely** — so seeding needs no login and no policy carve-out.
+- The **seed/admin** path uses the secret key (`sb_secret_...`), which **bypasses RLS entirely** — so seeding needs no login and no policy carve-out.
 
 ### 3. Content data layer (`src/lib/content/`)
 
 **`client.ts`** — two factory functions over `@supabase/supabase-js`:
-- `createReadClient()` — uses `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`; used by the Server Component. Read-only by virtue of RLS.
-- `createAdminClient()` — uses `SUPABASE_SERVICE_ROLE_KEY` (server/seed only; never `NEXT_PUBLIC_`); used by the seed script.
+- `createReadClient()` — uses `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; used by the Server Component. Read-only by virtue of RLS.
+- `createAdminClient()` — uses `SUPABASE_SECRET_KEY` (server/seed only; never `NEXT_PUBLIC_`); used by the seed script.
 
 **`content.ts`** — the single mapping seam:
 ```ts
@@ -184,13 +184,13 @@ The seed is the *only writer* in this slice and is the live home of the write-ti
 
 ## Environment / secrets
 
-`.env.local` (gitignored), mirrored by a committed `.env.example` (keys only, no values):
+Uses Supabase's **current API key types** (publishable / secret), which replace the legacy `anon` / `service_role` JWT keys. `.env.local` (gitignored), mirrored by a committed `.env.example` (keys only, no values):
 ```
-NEXT_PUBLIC_SUPABASE_URL=…        # public — project address
-NEXT_PUBLIC_SUPABASE_ANON_KEY=…   # public — read token (RLS-gated)
-SUPABASE_SERVICE_ROLE_KEY=…       # SECRET — seed/admin only; never NEXT_PUBLIC_, never in the browser
+NEXT_PUBLIC_SUPABASE_URL=…              # public — project address
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=…  # public — read token (sb_publishable_...), RLS-gated
+SUPABASE_SECRET_KEY=…                   # SECRET — seed/admin only (sb_secret_...); bypasses RLS; never NEXT_PUBLIC_, never in the browser
 ```
-- Prod (Vercel) needs `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the ISR fetch. The `service_role` key is **not** needed in prod (the seed runs locally), so it stays out of the deployed environment.
+- Prod (Vercel) needs `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the ISR fetch. The secret key is **not** needed in prod (the seed runs locally), so it stays out of the deployed environment.
 - Migrations are applied to the hosted project via the Supabase CLI (`supabase/migrations/`).
 
 ---
@@ -204,7 +204,7 @@ TDD, logic-first. `pnpm test` / `pnpm typecheck` / `pnpm lint` stay green; `pnpm
 3. **Content data layer (`content.test.ts`, new) — mocked client.** With a stubbed Supabase client returning canned rows: `fetchDailyContent` maps rows → correct `Puzzle` shape; orders `schedule` by `position`; filters out non-published puzzles and dangling schedule entries; handles an empty DB gracefully (returns `{ puzzles: [], schedule: [] }`, which the Daily already renders as "caught up").
 4. **`DailyScreen` — prop-driven.** Existing component tests are updated to pass `puzzles`/`schedule` props instead of relying on the `BUILTINS` import; **assertions and behavior are otherwise unchanged** (renders today's puzzle, resumes a stored board, completion card + streak, caught-up/`none` and before-epoch states). "today" is still injected.
 5. **Seed validation.** The seed's validation step is unit-tested (it rejects a deliberately non-unique / non-solvable puzzle); the actual DB write is exercised manually against the hosted project, not in CI.
-6. **Migration sanity.** The SQL migration is reviewed and applied to the project; RLS is spot-checked manually (anon can read published, cannot read drafts or write; service_role seeds successfully).
+6. **Migration sanity.** The SQL migration is reviewed and applied to the project; RLS is spot-checked manually (the publishable key can read published, cannot read drafts or write; the secret key seeds successfully).
 
 ## Dependencies
 
@@ -237,4 +237,4 @@ package.json                                 (chg)  @supabase/supabase-js, seed 
 - **The in-code seed snapshot can drift from the DB once Studio writes directly.** After Studio exists, the DB is canonical and `BUILTINS`/`DAILY_LIST` are a historical "initial seed." This is acceptable and honest; the integrity test remains meaningful as a gate over *that snapshot*, not over live DB content (live content is gated at write time).
 - **ISR window vs. expectations.** New content appears within the revalidate window (~hourly), not instantly. Fine for a daily; on-demand revalidation on Studio publish is the future upgrade.
 - **Server can't know the player's timezone**, so the page ships the full published set + schedule and the client resolves the local date — same as today's bundled model. Safe at this scale; revisit only if the catalog grows large (windowing).
-- **Two Supabase clients, two keys.** The `service_role` key must never reach the browser or `NEXT_PUBLIC_`. Keep `createAdminClient` out of any client-imported module; the seed is a standalone Node script.
+- **Two Supabase clients, two keys.** The secret key (`sb_secret_...`) must never reach the browser or `NEXT_PUBLIC_`. Keep `createAdminClient` out of any client-imported module; the seed is a standalone Node script.
