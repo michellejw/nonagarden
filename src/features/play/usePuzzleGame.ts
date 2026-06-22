@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { Cell, Clue, Puzzle } from "@/lib/nonogram";
 import { cluesFor, column, lineState, type LineState } from "@/lib/nonogram";
-import { reducer, initState, type Mode } from "./reducer";
+import { reducer, initState, seedState, type Mode } from "./reducer";
+
+export interface PuzzleGameSnapshot {
+  cells: Cell[][];
+  won: boolean;
+  frozenElapsed: number;
+}
+export interface PuzzleGameOptions {
+  initial?: PuzzleGameSnapshot;
+  onChange?: (snap: PuzzleGameSnapshot) => void;
+}
 
 export interface PlayApi {
   puzzle: Puzzle;
@@ -24,8 +34,12 @@ export interface PlayApi {
   next(): void;
 }
 
-export function usePuzzleGame(puzzles: Puzzle[]): PlayApi {
-  const [state, dispatch] = useReducer(reducer, puzzles, initState);
+export function usePuzzleGame(puzzles: Puzzle[], opts?: PuzzleGameOptions): PlayApi {
+  const [state, dispatch] = useReducer(
+    reducer,
+    null,
+    () => (opts?.initial ? seedState(puzzles[0], opts.initial) : initState(puzzles)),
+  );
   const [now, setNow] = useState(0);
 
   useEffect(() => {
@@ -35,6 +49,17 @@ export function usePuzzleGame(puzzles: Puzzle[]): PlayApi {
     const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
   }, [state.startTs, state.won]);
+
+  const onChangeRef = useRef(opts?.onChange);
+  // eslint-disable-next-line react-hooks/refs -- intentional: keep ref current with latest onChange to avoid stale closure in effect, without adding onChange to effect deps
+  onChangeRef.current = opts?.onChange;
+  useEffect(() => {
+    onChangeRef.current?.({
+      cells: state.cells,
+      won: state.won,
+      frozenElapsed: state.frozenElapsed,
+    });
+  }, [state.cells, state.won, state.frozenElapsed]);
 
   const { rowClues, colClues } = useMemo(() => cluesFor(state.puzzle), [state.puzzle]);
 

@@ -9,5 +9,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // Node 25 ships native Web Storage which shadows jsdom's localStorage,
+    // breaking store tests. Disable it at the worker level so the flag applies
+    // regardless of how vitest is invoked (npx vitest, IDE extension, CI, etc.).
+    pool: "forks",
+    poolOptions: { forks: { execArgv: ["--no-experimental-webstorage"] } },
   },
 });

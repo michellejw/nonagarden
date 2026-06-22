@@ -64,4 +64,111 @@ export const BUILTINS: Puzzle[] = [
       ".#.###.#..",
     ],
   },
+  // Task 4: redesigned for visual clarity (unique + line-solvable, verified)
+  {
+    id: "mushroom",
+    name: "Mushroom",
+    size: 5,
+    // Dome cap (rows 0-2) + stem (rows 3-4) — unmistakable at 5×5
+    rows: [".###.", "#####", ".###.", "..#..", "..#.."],
+  },
+  {
+    id: "acorn",
+    name: "Acorn",
+    size: 5,
+    // Wide flat cap (row of 5), round body, narrow stem
+    rows: ["#####", ".###.", ".###.", "..#..", "..#.."],
+  },
+  {
+    id: "bee",
+    name: "Bee",
+    size: 5,
+    rows: [".#.#.", "#####", ".###.", "..#..", ".#.#."],
+  },
+  {
+    id: "fish",
+    name: "Fish",
+    size: 5,
+    rows: ["....#", ".####", "#####", ".####", "....#"],
+  },
+  {
+    id: "star",
+    name: "Star",
+    size: 5,
+    // Top point, wide arm band, two side + two bottom corner points
+    rows: ["..#..", "#####", ".###.", "#.#.#", "#...#"],
+  },
+  {
+    id: "cup",
+    name: "Cup",
+    size: 5,
+    // U-shape walls + solid bottom + narrower footing
+    rows: ["#...#", "#...#", "#...#", "#####", ".###."],
+  },
+  {
+    id: "moon",
+    name: "Moon",
+    size: 5,
+    rows: [".###.", "####.", "####.", "####.", ".###."],
+  },
+  {
+    id: "key",
+    name: "Key",
+    size: 5,
+    rows: ["..###", ".#...", "..###", "...#.", "...#."],
+  },
+  {
+    id: "flower",
+    name: "Flower",
+    size: 10,
+    // Cross-shaped petals (N/S/E/W) around filled center — clear petal silhouette
+    rows: [
+      "....##....",
+      "...####...",
+      "..######..",
+      ".##.##.##.",
+      "##.####.##",
+      "##.####.##",
+      ".##.##.##.",
+      "..######..",
+      "...####...",
+      "....##....",
+    ],
+  },
+  {
+    id: "owl",
+    name: "Owl",
+    size: 10,
+    rows: [
+      "..######..",
+      ".########.",
+      "##.####.##",
+      "##.####.##",
+      ".########.",
+      "..######..",
+      "...####...",
+      "..######..",
+      "..#....#..",
+      "..#....#..",
+    ],
+  },
+  {
+    id: "teapot",
+    name: "Teapot",
+    size: 10,
+    // Lid knob top-center, spout protrudes LEFT (cols 0-1, rows 4-6),
+    // C-handle protrudes RIGHT (cols 8-9 at rows 3+7, col 9 at rows 4-6)
+    rows: [
+      "....##....",
+      "...####...",
+      "..######..",
+      "..########",
+      "########.#",
+      "########.#",
+      "########.#",
+      "..########",
+      "..######..",
+      "...####...",
+    ],
+  },
 ];
