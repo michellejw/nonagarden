@@ -33,7 +33,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="forest" className={`${fredoka.variable} h-full antialiased`}>
+    // suppressHydrationWarning: the themeInit script above intentionally sets
+    // data-theme from localStorage before hydration, so the server's "forest"
+    // default and the client's saved theme (e.g. "twilight") legitimately differ.
+    // This suppresses only this element's shallow attribute mismatch, nothing else.
+    <html
+      lang="en"
+      data-theme="forest"
+      suppressHydrationWarning
+      className={`${fredoka.variable} h-full antialiased`}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
