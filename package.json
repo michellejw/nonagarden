@@ -9,10 +9,12 @@
     "lint": "eslint",
     "test": "NODE_OPTIONS=--no-experimental-webstorage vitest",
     "test:run": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "node --env-file=.env.local --import tsx supabase/seed/seed.ts"
   },
   "dependencies": {
     "@shroomgames/tokens": "file:../shroomkit/tokens/dist",
+    "@supabase/supabase-js": "^2.108.2",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -31,6 +33,7 @@
     "eslint-config-next": "16.2.9",
     "jsdom": "^25.0.1",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.6"

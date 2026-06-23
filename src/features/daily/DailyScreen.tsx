@@ -10,13 +10,11 @@ import {
   defaultStore,
   type DailyStore,
 } from "@/lib/daily";
-import { BUILTINS } from "@/lib/puzzles/builtins";
+import type { Puzzle } from "@/lib/nonogram";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { todayLocal } from "./todayDate";
 import { DailyBoard } from "./DailyBoard";
 import type { PuzzleGameSnapshot } from "@/features/play/usePuzzleGame";
-
-const byId = new Map(BUILTINS.map((p) => [p.id, p]));
 
 function formatLongDate(date: string): string {
   const [y, m, d] = date.split("-").map(Number);
@@ -28,7 +26,15 @@ function formatLongDate(date: string): string {
   });
 }
 
-export function DailyScreen({ nowDate }: { nowDate?: string }) {
+export function DailyScreen({
+  puzzles,
+  schedule,
+  nowDate,
+}: {
+  puzzles: Puzzle[];
+  schedule: readonly string[];
+  nowDate?: string;
+}) {
   // Always start null: DailyBoard must not mount until BOTH today and store are
   // loaded from the client (one useEffect, one setState call). This prevents a
   // race where DailyBoard mounts with store=defaultStore (no saved data) and
@@ -45,7 +51,11 @@ export function DailyScreen({ nowDate }: { nowDate?: string }) {
     setToday(nowDate ?? todayLocal());
   }, [nowDate]);
 
-  const result = useMemo(() => (today ? dailyFor(today) : null), [today]);
+  const byId = useMemo(() => new Map(puzzles.map((p) => [p.id, p])), [puzzles]);
+  const result = useMemo(
+    () => (today ? dailyFor(today, schedule) : null),
+    [today, schedule],
+  );
   const streak = today ? currentStreakAsOf(store.streak, today) : 0;
 
   if (!today || !result) return <DailyShell streak={0} dateLabel="" />; // skeleton
