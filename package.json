@@ -11,7 +11,8 @@
     "test:run": "NODE_OPTIONS=--no-experimental-webstorage vitest run",
     "typecheck": "tsc --noEmit",
     "seed": "node --env-file=.env.local --import tsx supabase/seed/seed.ts",
-    "studio:preview": "node --import tsx studio/preview.ts"
+    "studio:preview": "node --import tsx studio/preview.ts",
+    "studio:publish": "node --env-file=.env.local --import tsx studio/publish.ts"
   },
   "dependencies": {
     "@shroomgames/tokens": "file:../shroomkit/tokens/dist",
