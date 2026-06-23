@@ -41,7 +41,7 @@ async function main() {
   if (dryRun) {
     if (schedule)
       console.log(
-        `Would schedule (append): ${plan.valid.map((r) => r.slug).join(", ") || "(none)"}`,
+        `Would schedule (append, minus already-scheduled): ${plan.valid.map((r) => r.slug).join(", ") || "(none)"}`,
       );
     console.log("Dry run — no writes.");
     return;

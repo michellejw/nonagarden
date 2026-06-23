@@ -2,6 +2,10 @@ import { tryGrade } from "./grade";
 import { renderGridHtml } from "./render";
 import type { Difficulty, Puzzle } from "../nonogram";
 
+function esc(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] as string);
+}
+
 export interface GalleryItem {
   puzzle: Puzzle;
   valid: boolean;
@@ -45,10 +49,10 @@ export function buildGalleryHtml(
       const badge = it.valid
         ? `<span class="badge ${it.difficulty}">${it.difficulty}</span>`
         : `<span class="badge invalid">invalid</span>`;
-      const note = it.valid ? "" : `<p class="reason">${it.reason}</p>`;
+      const note = it.valid ? "" : `<p class="reason">${esc(it.reason ?? "")}</p>`;
       return `<figure class="card ${it.valid ? "" : "is-invalid"}">
   ${renderGridHtml(it.puzzle)}
-  <figcaption><strong>${it.puzzle.name}</strong> · ${it.puzzle.size}×${it.puzzle.size} · <code>${it.puzzle.id}</code> ${badge}${note}</figcaption>
+  <figcaption><strong>${esc(it.puzzle.name)}</strong> · ${it.puzzle.size}×${it.puzzle.size} · <code>${esc(it.puzzle.id)}</code> ${badge}${note}</figcaption>
 </figure>`;
     })
     .join("\n");

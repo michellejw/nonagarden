@@ -24,4 +24,11 @@ describe("buildGalleryHtml", () => {
     expect(html).toContain("invalid");
     expect(html).toMatch(/line-solvable|solution/); // the rejection reason for AMB
   });
+
+  it("escapes HTML-special characters in candidate name", () => {
+    const tricky: Puzzle = { id: "x", name: "A & B <tag>", size: 2, rows: ["##", "##"] };
+    const html = buildGalleryHtml(gradeCandidates([tricky]));
+    expect(html).toContain("A &amp; B &lt;tag&gt;");
+    expect(html).not.toContain("A & B <tag>");
+  });
 });
