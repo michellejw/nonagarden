@@ -746,6 +746,10 @@ git commit -m "feat: re-point the Daily to Supabase content via ISR server fetch
 ## Risks / notes
 
 - **Append-only lives in two places now** (in-code `DAILY_LIST` guarded by the existing pinning test; DB `daily_schedule.position` guarded by seed order + write discipline). Studio must append, never reorder.
-- **Build-time DB dependency:** `pnpm build` and each ISR revalidation hit Supabase; an unreachable/empty DB degrades to the caught-up state (no crash) but is worth noticing.
+- **Build-time DB dependency (corrected post-review):** `pnpm build` and each ISR revalidation hit Supabase. An *empty* DB degrades gracefully to the caught-up state. An *unreachable* DB or missing env vars makes `fetchDailyContent` throw, which errors the page render — EXCEPT that, once built, ISR keeps serving the last good static render on revalidation failures, so a transient outage doesn't break the live page (and past dailies are stable regardless). The only hard failure is a cold `pnpm build` with no DB reachable. `page.tsx` deliberately does NOT swallow the error into a falsely-cheerful "caught up" card (that would misrepresent an outage as "no puzzle scheduled"). Revisit if a softer outage UX is wanted.
 - **Unpublishing a scheduled puzzle** turns its day into a gap — invariant to enforce in Studio, not here.
 - **`difficultyOf` return type:** if not the three-string union, use `ReturnType<typeof difficultyOf>` (noted in Task 4).
+
+### Post-implementation notes (accepted deviations from this plan)
+- **RLS policy form:** the migration uses `for all to authenticated using (true) with check (true)` rather than the spec's `using (auth.role() = 'authenticated')`. The `to authenticated` Postgres-role-targeting form is the modern, recommended approach — accepted as an improvement.
+- **`0002_service_role_grants.sql` added:** because "Automatically expose new tables" is OFF, the `service_role` (which bypasses RLS but not table privileges) had no grants, so the seed failed with `permission denied` until granted. Kept as a separate forward-only migration (both `0001` and `0002` apply in order on a fresh `db reset`); not folded into `0001` to preserve parity with the already-applied live DB.
