@@ -1,7 +1,6 @@
 "use client";
 
 import type { Puzzle } from "@/lib/nonogram";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { usePuzzleGame } from "./usePuzzleGame";
 import { Board } from "./Board";
 import { formatTime } from "./format";
@@ -49,7 +48,6 @@ export function PlayScreen({ puzzles }: { puzzles: Puzzle[] }) {
                 {formatTime(game.elapsedMs)}
               </span>
             </div>
-            <ThemeToggle />
           </div>
         </div>
 

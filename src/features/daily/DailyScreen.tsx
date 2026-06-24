@@ -11,7 +11,6 @@ import {
   type DailyStore,
 } from "@/lib/daily";
 import type { Puzzle } from "@/lib/nonogram";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { todayLocal } from "./todayDate";
 import { DailyBoard } from "./DailyBoard";
 import type { PuzzleGameSnapshot } from "@/features/play/usePuzzleGame";
@@ -140,7 +139,6 @@ function DailyShell({
                 🔥 {streak} day{streak === 1 ? "" : "s"} streak
               </div>
             )}
-            <ThemeToggle />
           </div>
         </div>
         {children}

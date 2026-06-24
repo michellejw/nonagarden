@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fredoka } from "next/font/google";
+import { AppHeader } from "@/components/AppHeader";
 import "./globals.css";
 
 // The Shroom Games UI face. 600 is the workhorse weight (per the design handoff).
@@ -46,7 +47,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
-      <body className="min-h-full flex flex-col bg-app text-ink">{children}</body>
+      <body className="min-h-full flex flex-col bg-app text-ink"><AppHeader />{children}</body>
     </html>
   );
 }
