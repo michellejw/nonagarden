@@ -55,6 +55,12 @@ describe("LibraryPlayScreen", () => {
     );
   });
 
+  it("does not store a board when the puzzle is opened but not played", async () => {
+    render(<LibraryPlayScreen puzzle={PUZZLE} />);
+    await screen.findByRole("grid"); // ready gate resolved
+    expect(boardFor(loadLibraryStore(), "id-2x2")).toBeUndefined();
+  });
+
   it("on win: records to ledger and drops the in-progress board", async () => {
     render(<LibraryPlayScreen puzzle={PUZZLE} />);
     // Wait for the board to mount (ready gate).

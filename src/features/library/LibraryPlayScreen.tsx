@@ -47,12 +47,19 @@ function LibraryBoard({
     if (snap.won) {
       recordCleared(puzzle.id);
       dropBoard(puzzle.id);
-    } else {
+      return;
+    }
+    const hasProgress = snap.cells.some((row) => row.some((v) => v !== 0));
+    if (hasProgress) {
       saveBoard(puzzle.id, {
         cells: snap.cells,
         completed: false,
         elapsedMs: snap.frozenElapsed,
       });
+    } else {
+      // An empty board carries no progress — clear any prior saved entry instead
+      // of persisting a blank one (matches the store's "only real progress" intent).
+      dropBoard(puzzle.id);
     }
   };
 
