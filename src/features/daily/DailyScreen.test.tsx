@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { DailyScreen } from "./DailyScreen";
 import { saveStore, type DailyStore } from "@/lib/daily";
 import type { Puzzle } from "@/lib/nonogram";
+import { loadCleared } from "@/lib/library/cleared";
 
 // 2026-06-22 is DAILY_EPOCH → index 0 → "sprout" (5x5). Its solution rows:
 const SPROUT_FILLS: [number, number][] = [];
@@ -62,5 +63,16 @@ describe("DailyScreen", () => {
     saveStore(done);
     render(<DailyScreen puzzles={PUZZLES} schedule={SCHEDULE} nowDate="2026-06-22" />);
     expect(await screen.findByRole("heading", { name: /Picture complete/i })).toBeInTheDocument();
+  });
+
+  it("records the daily puzzle in the completion ledger on win", async () => {
+    render(<DailyScreen puzzles={PUZZLES} schedule={SCHEDULE} nowDate="2026-06-22" />);
+    await screen.findByRole("grid");
+    const grid = screen.getByRole("grid");
+    for (const [r, c] of SPROUT_FILLS) {
+      fireEvent.pointerDown(within(grid).getByLabelText(new RegExp(`Row ${r + 1}, column ${c + 1}`, "i")));
+    }
+    expect(await screen.findByRole("heading", { name: /Picture complete/i })).toBeInTheDocument();
+    expect(loadCleared().ids).toContain(SPROUT.id);
   });
 });

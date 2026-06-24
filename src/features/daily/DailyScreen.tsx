@@ -11,6 +11,7 @@ import {
   type DailyStore,
 } from "@/lib/daily";
 import type { Puzzle } from "@/lib/nonogram";
+import { recordCleared } from "@/lib/library/cleared";
 import { todayLocal } from "./todayDate";
 import { DailyBoard } from "./DailyBoard";
 import type { PuzzleGameSnapshot } from "@/features/play/usePuzzleGame";
@@ -83,12 +84,14 @@ export function DailyScreen({
           return next;
         });
 
-      const onWin = () =>
+      const onWin = () => {
+        recordCleared(puzzle.id);
         setStore((s) => {
           const next: DailyStore = { ...s, streak: completeDaily(s.streak, today) };
           saveStore(next);
           return next;
         });
+      };
 
       return (
         <DailyShell streak={streak} dateLabel={formatLongDate(today)}>
