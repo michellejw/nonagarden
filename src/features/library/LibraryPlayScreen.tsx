@@ -19,7 +19,7 @@ const MODES: { value: Mode; label: string }[] = [
 
 export function LibraryPlayScreen({
   puzzle,
-  schedule = [],
+  schedule,
   nowDate,
 }: {
   puzzle: LibraryPuzzle;
@@ -46,7 +46,12 @@ export function LibraryPlayScreen({
     // and the browse wall agree in every timezone (closes the UTC-vs-local
     // play-ahead window that existed when the route used UTC).
     const todayPosition = daysSince(DAILY_EPOCH, nowDate ?? todayLocal());
-    const positionMap = new Map<string, number>(schedule.map((s) => [s.puzzle_id, s.position]));
+    // `schedule` is left undefined (not defaulted to a fresh []) so its identity
+    // is stable across renders — otherwise this effect's dep array would see a
+    // new array every commit and re-run, looping with setInitial. Fall back here.
+    const positionMap = new Map<string, number>(
+      (schedule ?? []).map((s) => [s.puzzle_id, s.position]),
+    );
     const position = positionMap.get(puzzle.id);
     const isFuture = position !== undefined && position > todayPosition;
     setAvailable(!isFuture);
