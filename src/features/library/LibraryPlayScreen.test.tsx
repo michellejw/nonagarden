@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { LibraryPlayScreen } from "./LibraryPlayScreen";
 import { loadCleared } from "@/lib/library/cleared";
 import { loadLibraryStore, boardFor, saveBoard } from "@/lib/library/store";
-import type { LibraryPuzzle } from "@/lib/content/content";
+import type { LibraryPuzzle, ScheduleRow } from "@/lib/content/content";
 
 // 2×2: solution fills the whole grid → fill all 4 cells to win.
 const PUZZLE: LibraryPuzzle = {
@@ -78,5 +78,22 @@ describe("LibraryPlayScreen", () => {
     expect(loadCleared().ids).toContain("id-2x2");
     // In-progress board should be dropped.
     expect(boardFor(loadLibraryStore(), "id-2x2")).toBeUndefined();
+  });
+
+  it("gates a future-scheduled daily (local date) instead of playing it", async () => {
+    // DAILY_EPOCH is 2026-06-22 → todayPosition = daysSince("2026-06-22", "2026-06-22") = 0.
+    // Schedule puts puzzle at position 5 → 5 > 0 → future → gate shown.
+    const schedule: ScheduleRow[] = [{ position: 5, puzzle_id: "id-2x2" }];
+    render(<LibraryPlayScreen puzzle={PUZZLE} schedule={schedule} nowDate="2026-06-22" />);
+    expect(await screen.findByText(/hasn't sprouted yet/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /back to library/i })).toBeInTheDocument();
+    expect(screen.queryByRole("grid")).toBeNull();
+  });
+
+  it("plays a past/today daily when local date is past the scheduled position", async () => {
+    // todayPosition = daysSince("2026-06-22", "2099-01-01") >> 5 → not future → board shown.
+    const schedule: ScheduleRow[] = [{ position: 5, puzzle_id: "id-2x2" }];
+    render(<LibraryPlayScreen puzzle={PUZZLE} schedule={schedule} nowDate="2099-01-01" />);
+    expect(await screen.findByRole("grid")).toBeInTheDocument();
   });
 });

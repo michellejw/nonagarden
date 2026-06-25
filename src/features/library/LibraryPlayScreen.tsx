@@ -2,25 +2,38 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { LibraryPuzzle } from "@/lib/content/content";
+import type { LibraryPuzzle, ScheduleRow } from "@/lib/content/content";
 import { usePuzzleGame, type PuzzleGameSnapshot } from "@/features/play/usePuzzleGame";
 import { Board } from "@/features/play/Board";
 import { formatTime } from "@/features/play/format";
 import type { Mode } from "@/features/play/reducer";
 import { recordCleared } from "@/lib/library/cleared";
 import { loadLibraryStore, saveBoard, dropBoard, boardFor } from "@/lib/library/store";
+import { daysSince, DAILY_EPOCH } from "@/lib/daily";
+import { todayLocal } from "@/features/daily/todayDate";
 
 const MODES: { value: Mode; label: string }[] = [
   { value: "fill", label: "Fill" },
   { value: "mark", label: "Mark" },
 ];
 
-export function LibraryPlayScreen({ puzzle }: { puzzle: LibraryPuzzle }) {
+export function LibraryPlayScreen({
+  puzzle,
+  schedule = [],
+  nowDate,
+}: {
+  puzzle: LibraryPuzzle;
+  schedule?: ScheduleRow[];
+  nowDate?: string;
+}) {
   // Resolve the saved board client-side before mounting the game (mirrors
   // DailyScreen: usePuzzleGame's lazy init must see `initial` on first render).
   // If we mount LibraryBoard immediately, usePuzzleGame's lazy initializer runs
   // with initial=undefined; later arriving initial is ignored. So gate on ready.
+  // Also compute future-daily availability in the same effect so we use the
+  // player's local date — matching the wall's filtering logic exactly.
   const [ready, setReady] = useState(false);
+  const [available, setAvailable] = useState(true);
   const [initial, setInitial] = useState<PuzzleGameSnapshot | undefined>(undefined);
 
   useEffect(() => {
@@ -29,10 +42,33 @@ export function LibraryPlayScreen({ puzzle }: { puzzle: LibraryPuzzle }) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only bootstrap: read saved board once after mount before mounting the game
       setInitial({ cells: saved.cells, won: saved.completed, frozenElapsed: saved.elapsedMs });
     }
+    // Check future-daily gating using the player's LOCAL date so the play page
+    // and the browse wall agree in every timezone (closes the UTC-vs-local
+    // play-ahead window that existed when the route used UTC).
+    const todayPosition = daysSince(DAILY_EPOCH, nowDate ?? todayLocal());
+    const positionMap = new Map<string, number>(schedule.map((s) => [s.puzzle_id, s.position]));
+    const position = positionMap.get(puzzle.id);
+    const isFuture = position !== undefined && position > todayPosition;
+    setAvailable(!isFuture);
     setReady(true);
-  }, [puzzle.id]);
+  }, [puzzle.id, schedule, nowDate]);
 
   if (!ready) return <main className="flex flex-1 flex-col items-center px-6 py-10" />;
+
+  if (!available) {
+    return (
+      <main className="flex flex-1 flex-col items-center px-6 py-10">
+        <div className="rounded-2xl bg-card p-6 text-center">
+          <h2 className="text-xl font-semibold text-ink">This puzzle hasn&apos;t sprouted yet 🌱</h2>
+          <p className="mt-2 text-sm text-ink-soft">Come back when it&apos;s the daily.</p>
+          <Link href="/library" className="mt-4 inline-block rounded-xl bg-pill px-4 py-2 text-sm font-semibold text-ink hover:opacity-90">
+            Back to library
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   return <LibraryBoard puzzle={puzzle} initial={initial} />;
 }
 
