@@ -8,7 +8,7 @@ function Thumbnail({ puzzle }: { puzzle: LibraryPuzzle }) {
   return (
     <div
       data-testid="tile-thumbnail"
-      className="grid aspect-square w-full overflow-hidden rounded-lg"
+      className="grid aspect-square w-3/4 overflow-hidden rounded-md"
       style={{ gridTemplateColumns: `repeat(${puzzle.size}, 1fr)` }}
       aria-hidden
     >
@@ -27,31 +27,44 @@ function Thumbnail({ puzzle }: { puzzle: LibraryPuzzle }) {
 export function PuzzleTile({
   puzzle,
   cleared,
+  inProgress = false,
 }: {
   puzzle: LibraryPuzzle;
   cleared: boolean;
+  inProgress?: boolean;
 }) {
+  // The picture's identity is the reward: name and image stay hidden until
+  // solved. Before then a mushroom conveys state — a muted/gray one when
+  // untouched, a full-colour one once you've started, the revealed picture
+  // when solved. The art sits on the app's "covered tile" ground so every
+  // state shares one frame; the footer keeps a fixed shape so rows stay even.
   return (
     <Link
       href={`/library/${puzzle.slug}`}
-      className="flex flex-col gap-2 rounded-2xl bg-card p-3 transition-transform hover:-translate-y-0.5"
+      className="group flex flex-col gap-2.5 rounded-2xl bg-card p-2.5 transition-transform hover:-translate-y-0.5"
     >
-      <div className="aspect-square w-full overflow-hidden rounded-lg bg-pill">
+      <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-tile-covered">
         {cleared ? (
           <Thumbnail puzzle={puzzle} />
         ) : (
-          <div className="flex h-full items-center justify-center text-2xl text-ink-soft" aria-hidden>
+          <span
+            className={`text-6xl leading-none ${inProgress ? "" : "grayscale opacity-50"}`}
+            aria-hidden
+          >
             🍄
-          </div>
+          </span>
         )}
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-ink">{puzzle.name}</span>
-        <span className="text-xs text-ink-soft">
-          {puzzle.size} × {puzzle.size}
+      <div className="flex flex-col gap-1.5 px-0.5">
+        <span className="min-h-5 truncate text-sm font-semibold text-ink">
+          {cleared ? (
+            puzzle.name
+          ) : (
+            <span className="text-ink-soft">{inProgress ? "In progress" : "Not started"}</span>
+          )}
         </span>
+        <DifficultyBadge difficulty={puzzle.difficulty} />
       </div>
-      <DifficultyBadge difficulty={puzzle.difficulty} />
     </Link>
   );
 }

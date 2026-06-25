@@ -112,7 +112,7 @@ function LibraryBoard({
         <div className="mb-5 flex items-start justify-between gap-7">
           <div className="flex flex-col gap-[3px]">
             <span className="text-[0.6875rem] font-semibold uppercase tracking-[1.3px] text-ink-soft">
-              {puzzle.name}
+              Library
             </span>
             <span className="text-[2.5rem] font-semibold leading-none text-ink">
               {puzzle.size} × {puzzle.size}

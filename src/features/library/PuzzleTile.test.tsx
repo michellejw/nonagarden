@@ -19,11 +19,15 @@ describe("PuzzleTile", () => {
     expect(link).toHaveAttribute("href", "/library/sprout");
   });
 
-  it("shows name, size, and difficulty", () => {
-    render(<PuzzleTile puzzle={PUZZLE} cleared={false} />);
-    expect(screen.getByText("Sprout")).toBeInTheDocument();
-    expect(screen.getByText(/5\s*×\s*5/)).toBeInTheDocument();
+  it("hides the puzzle name until solved, revealing it only when cleared", () => {
+    const { rerender } = render(<PuzzleTile puzzle={PUZZLE} cleared={false} />);
+    // Unsolved: name hidden; difficulty still visible (size lives in the
+    // section header, not per tile).
+    expect(screen.queryByText("Sprout")).not.toBeInTheDocument();
     expect(screen.getByText(/forager/i)).toBeInTheDocument();
+    // Solved: name revealed.
+    rerender(<PuzzleTile puzzle={PUZZLE} cleared={true} />);
+    expect(screen.getByText("Sprout")).toBeInTheDocument();
   });
 
   it("renders the revealed thumbnail only when cleared", () => {
@@ -31,5 +35,20 @@ describe("PuzzleTile", () => {
     expect(screen.queryByTestId("tile-thumbnail")).not.toBeInTheDocument();
     rerender(<PuzzleTile puzzle={PUZZLE} cleared={true} />);
     expect(screen.getByTestId("tile-thumbnail")).toBeInTheDocument();
+  });
+
+  it("shows a muted mushroom when untouched and a full-colour one in progress", () => {
+    const { rerender } = render(
+      <PuzzleTile puzzle={PUZZLE} cleared={false} inProgress={false} />,
+    );
+    // Untouched: mushroom is muted/grayscale; no visible "In progress" label.
+    expect(screen.getByText("🍄").className).toContain("grayscale");
+    expect(screen.getByText("Not started")).toBeInTheDocument();
+    expect(screen.queryByText("In progress")).not.toBeInTheDocument();
+
+    // In progress: same mushroom, full colour (no grayscale) + visible label.
+    rerender(<PuzzleTile puzzle={PUZZLE} cleared={false} inProgress={true} />);
+    expect(screen.getByText("🍄").className).not.toContain("grayscale");
+    expect(screen.getByText("In progress")).toBeInTheDocument();
   });
 });
