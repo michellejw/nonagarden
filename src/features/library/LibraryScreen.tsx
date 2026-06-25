@@ -8,6 +8,12 @@ import {
   type LibraryPuzzle,
 } from "@/lib/content/content";
 import { loadCleared, isCleared, type ClearedStore } from "@/lib/library/cleared";
+import {
+  loadLibraryStore,
+  boardFor,
+  defaultLibraryStore,
+  type LibraryStore,
+} from "@/lib/library/store";
 import { daysSince, DAILY_EPOCH } from "@/lib/daily";
 import { todayLocal } from "@/features/daily/todayDate";
 import { PuzzleTile } from "./PuzzleTile";
@@ -24,11 +30,13 @@ export function LibraryScreen({
   const [ready, setReady] = useState(false);
   const [todayPosition, setTodayPosition] = useState(0);
   const [cleared, setCleared] = useState<ClearedStore>({ version: 1, ids: [] });
+  const [boards, setBoards] = useState<LibraryStore>(defaultLibraryStore);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only bootstrap: resolve local date + ledger once after mount (SSR can't know timezone/localStorage).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client-only bootstrap: resolve local date + ledger + in-progress boards once after mount (SSR can't know timezone/localStorage).
     setTodayPosition(daysSince(DAILY_EPOCH, todayLocal()));
     setCleared(loadCleared());
+    setBoards(loadLibraryStore());
     setReady(true);
   }, []);
 
@@ -64,22 +72,30 @@ export function LibraryScreen({
 
   return (
     <main className="flex flex-1 flex-col items-center px-6 py-10">
-      <div className="w-full max-w-3xl">
-        <div className="mb-6 flex items-baseline justify-between">
+      <div className="w-full max-w-5xl">
+        <div className="mb-8 flex items-baseline justify-between border-b border-border pb-4">
           <h1 className="text-2xl font-semibold text-ink">Library</h1>
           <span className="text-sm font-semibold text-ink-soft">
             {clearedCount} / {visible.length} cleared
           </span>
         </div>
         {groups.map(([size, items]) => (
-          <section key={size} className="mb-8">
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+          <section key={size} className="mb-10">
+            <h2 className="mb-4 text-xs font-semibold uppercase tracking-wide text-ink-soft">
               {size} × {size}
             </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {items.map((p) => (
-                <PuzzleTile key={p.id} puzzle={p} cleared={isCleared(cleared, p.id)} />
-              ))}
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              {items.map((p) => {
+                const done = isCleared(cleared, p.id);
+                return (
+                  <PuzzleTile
+                    key={p.id}
+                    puzzle={p}
+                    cleared={done}
+                    inProgress={!done && boardFor(boards, p.id) !== undefined}
+                  />
+                );
+              })}
             </div>
           </section>
         ))}
