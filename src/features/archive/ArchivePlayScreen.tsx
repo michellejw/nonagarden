@@ -85,9 +85,12 @@ export function ArchivePlayScreen({
         title="That one's today's daily"
         body="Play today's puzzle on the front door."
         cta={
-          <Link href="/" className="inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:opacity-90">
-            Play today's daily
-          </Link>
+          <div className="flex justify-center gap-[10px]">
+            <Link href="/" className="inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:opacity-90">
+              Play today's daily
+            </Link>
+            {backToArchive}
+          </div>
         }
       />
     );

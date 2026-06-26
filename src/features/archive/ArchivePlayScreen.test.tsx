@@ -47,5 +47,6 @@ describe("ArchivePlayScreen", () => {
   it("sends today's date back to the front door", async () => {
     render(<ArchivePlayScreen date="2026-06-24" puzzles={PUZZLES} schedule={SCHEDULE} nowDate={TODAY} />);
     expect(await screen.findByRole("link", { name: /today's daily/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /back to archive/i })).toHaveAttribute("href", "/archive");
   });
 });
