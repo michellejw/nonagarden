@@ -12,10 +12,10 @@ export function AppHeader() {
           Daily
         </Link>
         <Link
-          href="/library"
+          href="/archive"
           className="text-sm font-semibold text-ink-soft hover:text-ink"
         >
-          Library
+          Archive
         </Link>
         <ThemeToggle />
       </nav>

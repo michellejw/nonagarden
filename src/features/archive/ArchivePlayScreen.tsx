@@ -87,7 +87,7 @@ export function ArchivePlayScreen({
         cta={
           <div className="flex justify-center gap-[10px]">
             <Link href="/" className="inline-block rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:opacity-90">
-              Play today's daily
+              Play today&apos;s daily
             </Link>
             {backToArchive}
           </div>

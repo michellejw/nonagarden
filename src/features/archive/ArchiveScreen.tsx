@@ -10,7 +10,7 @@ import { buildCalendar } from "@/lib/archive/calendar";
 import { ArchiveCalendar } from "./ArchiveCalendar";
 
 export function ArchiveScreen({
-  puzzles,
+  puzzles: _puzzles,
   schedule,
   nowDate,
 }: {
