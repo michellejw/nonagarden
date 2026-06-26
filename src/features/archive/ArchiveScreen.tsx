@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Puzzle } from "@/lib/nonogram";
 import { DAILY_EPOCH, currentStreakAsOf, loadStore } from "@/lib/daily";
 import { loadCleared } from "@/lib/library/cleared";
 import { loadLibraryStore } from "@/lib/library/store";
@@ -10,11 +9,9 @@ import { buildCalendar } from "@/lib/archive/calendar";
 import { ArchiveCalendar } from "./ArchiveCalendar";
 
 export function ArchiveScreen({
-  puzzles: _puzzles,
   schedule,
   nowDate,
 }: {
-  puzzles: Puzzle[];
   schedule: string[];
   nowDate?: string;
 }) {

@@ -6,6 +6,6 @@ import { fetchDailyContent } from "@/lib/content/content";
 export const revalidate = 3600;
 
 export default async function ArchivePage() {
-  const { puzzles, schedule } = await fetchDailyContent();
-  return <ArchiveScreen puzzles={puzzles} schedule={schedule} />;
+  const { schedule } = await fetchDailyContent();
+  return <ArchiveScreen schedule={schedule} />;
 }
