@@ -24,7 +24,7 @@ function Cell({ cell }: { cell: DayCell }) {
 
   const inactive = cell.state === "before-epoch" || cell.state === "future" || cell.state === "gap";
   const ring = cell.state === "today" ? "ring-2 ring-accent" : "";
-  const showMushroom = !inactive || cell.state === "gap";
+  const showMushroom = !inactive;
 
   const body = (
     <div

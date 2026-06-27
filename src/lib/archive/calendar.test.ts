@@ -52,4 +52,22 @@ describe("buildCalendar", () => {
     // June 1 2026 is a Monday → one leading Sunday pad cell.
     expect(model.months[0].cells[0]).toEqual({ date: null, day: null, state: "pad" });
   });
+
+  it("spans multiple months, most-recent first, each with its own pad", () => {
+    const model = buildCalendar({
+      epoch: "2026-06-22",
+      today: "2026-08-03",
+      schedule: [],
+      clearedIds: new Set<string>(),
+      inProgressIds: new Set<string>(),
+    });
+    expect(model.months.map((m) => m.label)).toEqual(["August 2026", "July 2026", "June 2026"]);
+    // July 15 is a past in-range day with no schedule entry (empty schedule) → gap
+    expect(cellFor(model, "2026-07-15")).toMatchObject({ state: "gap" });
+    // each month contains day 1
+    for (const m of model.months) {
+      const firstReal = m.cells.find((c) => c.day === 1);
+      expect(firstReal).toBeTruthy();
+    }
+  });
 });
